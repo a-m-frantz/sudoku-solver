@@ -14,17 +14,6 @@ class Cell:
         print(self.candidates)
 
 
-class Region:
-    def __init__(self, cells):
-        self.cells = cells
-
-    def remove_digits(self, digits):
-        return
-
-    def update(self):
-        return
-
-
 class Puzzle:
     def __init__(self, raw_puzzle):
         self.candidates_array = []
