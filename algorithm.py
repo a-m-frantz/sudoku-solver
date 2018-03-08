@@ -1,3 +1,5 @@
+import itertools
+
 BANDS = [[0, 1, 2], [3, 4, 5], [6, 7, 8]]
 
 ROW_ITER = [[(row, col) for col in range(9)] for row in range(9)]
@@ -80,23 +82,45 @@ def find_hidden_singles(puzzle):
 def find_pairs(puzzle):
     for region_type in [ROW_ITER, COL_ITER, BLOCK_ITER]:
         for region in region_type:
-            for val_1 in range(1, 8+1):
-                for val_2 in range(val_1+1, 9+1):
-                    cell_pair = []
-                    for pos in region:
-                        cell = puzzle.cell_array[pos[0]][pos[1]]
-                        if cell.solved() or val_1 not in cell.candidates or val_2 not in cell.candidates:
-                            continue
-                        if len(cell_pair) < 2:
-                            cell_pair.append(cell)
-                        else:
-                            cell_pair.clear()
-                            break
-                    if len(cell_pair) == 2:
-                        cell_pair[0].candidates = {'dummy'}
-                        cell_pair[1].candidates = {'dummy'}
-                        for cell in cell_pair:
-                            update_regions(puzzle, cell.POS[0], cell.POS[1], val_1)
-                            update_regions(puzzle, cell.POS[0], cell.POS[1], val_2)
-                        cell_pair[0].candidates = {val_1, val_2}
-                        cell_pair[1].candidates = {val_1, val_2}
+            for val_pair in itertools.combinations(range(1, 9+1), 2):
+                cell_pair = []
+                for row, col in region:
+                    cell = puzzle.cell_array[row][col]
+                    if cell.solved() or not all(candidate in cell.candidates for candidate in val_pair):
+                        continue
+                    if len(cell_pair) < 2:
+                        cell_pair.append(cell)
+                    else:
+                        cell_pair.clear()
+                        break
+                if len(cell_pair) == 2:
+                    cell_pair[0].candidates = {'dummy'}
+                    cell_pair[1].candidates = {'dummy'}
+                    for cell in cell_pair:
+                        update_regions(puzzle, cell.POS[0], cell.POS[1], val_pair[0])
+                        update_regions(puzzle, cell.POS[0], cell.POS[1], val_pair[1])
+                    cell_pair[0].candidates = set(val_pair)
+                    cell_pair[1].candidates = set(val_pair)
+
+
+def find_triples(puzzle):
+    for region_type in [ROW_ITER, COL_ITER, BLOCK_ITER]:
+        for region in region_type:
+            for val_trip in itertools.combinations(range(1, 9+1), 3):
+                cell_trip = []
+                for row, col in region:
+                    cell = puzzle.cell_array[row][col]
+                    if cell.solved() or len(set(val_trip) & cell.candidates) < 2:
+                        continue
+                    if len(cell_trip) < 3:
+                        cell_trip.append(cell)
+                    else:
+                        cell_trip.clear()
+                        break
+                if len(cell_trip) == 3:
+                    for cell in cell_trip:
+                        cell.candidates = {'dummy'}
+                    for cell, val in itertools.product(cell_trip, val_trip):
+                        update_regions(puzzle, cell.POS[0], cell.POS[1], val)
+                    for cell in cell_trip:
+                        cell.candidates = set(val_trip)
