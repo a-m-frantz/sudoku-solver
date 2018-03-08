@@ -6,20 +6,25 @@ BLOCK_ITER = [[(row, col) for row in rows for col in cols] for rows in BANDS for
 
 
 def update_clue_regions(puzzle):
+    print('Removing clues from candidate lists')
     for row in range(9):
         for col in range(9):
-            if len(puzzle.cell_array[row][col].candidates) == 1:
-                val = next(iter(puzzle.cell_array[row][col].candidates))
+            if puzzle.cell_array[row][col].solved:
+                val = puzzle.cell_array[row][col].last_candidate
                 update_regions(puzzle, row, col, val)
+    print('Done removing clues from candidate lists', end='\n\n')
     return
 
 
 def update_regions(puzzle, row, col, val):
     print('Removing {} from candidate lists of cell ({}, {})\'s buddies'.format(val, row, col))
-    for cell in ROW_ITER[row]:
-        if cell[1] != col:
-            puzzle.cell_array[cell[0]][cell[1]].remove_candidate(val)
-    for cell in COL_ITER[col]:
-        if cell[0] != row:
-            puzzle.cell_array[cell[0]][cell[1]].remove_candidate(val)
+    for pos in ROW_ITER[row]:
+        if pos[1] != col:
+            cell = puzzle.cell_array[pos[0]][pos[1]]
+            just_solved = cell.remove_candidate(val)
+            if just_solved:
+                update_regions(puzzle, pos[0], pos[1], cell.last_candidate)
+    for pos in COL_ITER[col]:
+        if pos[0] != row:
+            puzzle.cell_array[pos[0]][pos[1]].remove_candidate(val)
 
