@@ -9,14 +9,15 @@ def update_clue_regions(puzzle):
     print('Removing clues from candidate lists')
     for row in range(9):
         for col in range(9):
-            if puzzle.cell_array[row][col].solved:
-                val = puzzle.cell_array[row][col].last_candidate
+            if puzzle.cell_array[row][col].solved():
+                val = puzzle.cell_array[row][col].last_candidate()
                 update_regions(puzzle, row, col, val)
     print('Done removing clues from candidate lists', end='\n\n')
     puzzle.print_puzzle()
     return
 
 
+# also handles naked singles recursively
 def update_regions(puzzle, row, col, val):
     print('Removing {} from candidate lists of cell ({}, {})\'s buddies'.format(val, row, col))
 
@@ -27,7 +28,7 @@ def update_regions(puzzle, row, col, val):
             just_solved = cell.remove_candidate(val)
             if just_solved:
                 print('Recursing in update_regions()')
-                update_regions(puzzle, pos[0], pos[1], cell.last_candidate)
+                update_regions(puzzle, pos[0], pos[1], cell.last_candidate())
 
     ### Columns ###
     for pos in COL_ITER[col]:
@@ -36,7 +37,7 @@ def update_regions(puzzle, row, col, val):
             just_solved = cell.remove_candidate(val)
             if just_solved:
                 print('Recursing in update_regions()')
-                update_regions(puzzle, pos[0], pos[1], cell.last_candidate)
+                update_regions(puzzle, pos[0], pos[1], cell.last_candidate())
 
     ### Blocks ###
     for horiz_band in BANDS:
@@ -54,4 +55,48 @@ def update_regions(puzzle, row, col, val):
             just_solved = cell.remove_candidate(val)
             if just_solved:
                 print('Recursing in update_regions()')
-                update_regions(puzzle, x_pos, y_pos, cell.last_candidate)
+                update_regions(puzzle, x_pos, y_pos, cell.last_candidate())
+
+
+def find_hidden_singles(puzzle):
+    for region_type in [ROW_ITER, COL_ITER, BLOCK_ITER]:
+        for region in region_type:
+            for val in range(1, 9+1):
+                only_occurrence = None
+                for row, col in region:
+                    cell = puzzle.cell_array[row][col]
+                    if cell.solved() or val not in cell.candidates:
+                        continue
+                    if not only_occurrence:     # val has not occurred yet
+                        only_occurrence = cell
+                    else:                       # val has already occurred
+                        only_occurrence = None
+                        break
+                if only_occurrence:
+                    only_occurrence.solve(val)
+                    update_regions(puzzle, only_occurrence.POS[0], only_occurrence.POS[1], val)
+
+
+def find_pairs(puzzle):
+    for region_type in [ROW_ITER, COL_ITER, BLOCK_ITER]:
+        for region in region_type:
+            for val_1 in range(1, 8+1):
+                for val_2 in range(val_1+1, 9+1):
+                    cell_pair = []
+                    for pos in region:
+                        cell = puzzle.cell_array[pos[0]][pos[1]]
+                        if cell.solved() or val_1 not in cell.candidates or val_2 not in cell.candidates:
+                            continue
+                        if len(cell_pair) < 2:
+                            cell_pair.append(cell)
+                        else:
+                            cell_pair.clear()
+                            break
+                    if len(cell_pair) == 2:
+                        cell_pair[0].candidates = {'dummy'}
+                        cell_pair[1].candidates = {'dummy'}
+                        for cell in cell_pair:
+                            update_regions(puzzle, cell.POS[0], cell.POS[1], val_1)
+                            update_regions(puzzle, cell.POS[0], cell.POS[1], val_2)
+                        cell_pair[0].candidates = {val_1, val_2}
+                        cell_pair[1].candidates = {val_1, val_2}
