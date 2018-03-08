@@ -29,6 +29,22 @@ class Puzzle:
                     self.cell_array[row].append(Cell(row, col))
                 pos += 1
 
+    def print_puzzle(self):
+        for row in range(9):
+            for col in range(9):
+                cell = self.cell_array[row][col]
+                if len(cell.candidates) == 1:
+                    print(next(iter(cell.candidates)), end=' ')
+                else:
+                    print('.', end=' ')
+                if col == 2 or col == 5:
+                    print('|', end=' ')
+            print()
+            if row == 2 or row == 5:
+                print('-' * 21)
+        print('\n\n')
+
+
     def print_all_candidates(self):
         for row in range(9):
             for col in range(9):
