@@ -18,23 +18,3 @@ def print_puzzle(puzzle):
         elif i % 3 == 2:
             print('|', end=' ')
     return
-
-
-def list_buddies(index):
-    # print(ROW_ITER)
-    # print(COL_ITER)
-    buddies = []
-    # Row
-    pos = index % 9
-    for i in range(-pos, 0):
-        buddies.append(index + i)
-    for i in range(1, 9 - pos):
-        buddies.append(index + i)
-
-    # Column
-    for i in range(1, 9):
-        buddies.append((index + (9 * i)) % 81)
-
-    # Block
-
-    print(buddies)
