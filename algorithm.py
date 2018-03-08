@@ -26,5 +26,8 @@ def update_regions(puzzle, row, col, val):
                 update_regions(puzzle, pos[0], pos[1], cell.last_candidate)
     for pos in COL_ITER[col]:
         if pos[0] != row:
-            puzzle.cell_array[pos[0]][pos[1]].remove_candidate(val)
+            cell = puzzle.cell_array[pos[0]][pos[1]]
+            just_solved = cell.remove_candidate(val)
+            if just_solved:
+                update_regions(puzzle, pos[0], pos[1], cell.last_candidate)
 
