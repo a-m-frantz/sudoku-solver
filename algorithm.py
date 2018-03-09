@@ -79,8 +79,39 @@ def find_hidden_singles(puzzle):
                     update_regions(puzzle, only_occurrence.POS[0], only_occurrence.POS[1], val)
 
 
-def find_pairs(puzzle):
+def find_naked_pairs(puzzle):
     for region_type_id, region_type in enumerate([ROW_ITER, COL_ITER, BLOCK_ITER]):
+        for region in region_type:
+            for val_pair in itertools.combinations(range(1, 9+1), 2):
+                cell_pair = []
+                for row, col in region:
+                    cell = puzzle.cell_array[row][col]
+
+                    if cell.solved() or len(cell.candidates - set(val_pair)) != 0:
+                        continue
+                    if len(cell_pair) < 2:
+                        cell_pair.append(cell)
+                    else:
+                        cell_pair.clear()
+                        break
+                if len(cell_pair) == 2:
+                    print('Found naked pair!')
+                    print('Pair is: ' + str(val_pair[0]) + str(val_pair[1]))
+                    for cell in cell_pair:
+                        cell.print_cell()
+
+                    region_list = ['row', 'column', 'block']
+                    region_with_pair = region_list[region_type_id]
+                    for cell in cell_pair:
+                        cell.dont_update = True
+                    for cell, val in itertools.product(cell_pair, val_pair):
+                        update_regions(puzzle, cell.POS[0], cell.POS[1], val, region_with_pair)
+                    for cell in cell_pair:
+                        cell.dont_update = False
+
+
+def find_hidden_pairs(puzzle):
+    for region_type in [ROW_ITER, COL_ITER, BLOCK_ITER]:
         for region in region_type:
             for val_pair in itertools.combinations(range(1, 9+1), 2):
                 val_1_matches = []
@@ -105,44 +136,13 @@ def find_pairs(puzzle):
                         cell_pair.clear()
                         break
                 if len(cell_pair) == 2:
-                    print('Found pair!')
+                    print('Found hidden pair!')
                     print('Pair is: ' + str(val_pair[0]) + str(val_pair[1]))
                     for cell in cell_pair:
                         cell.print_cell()
-                    region_list = ['row', 'column', 'block']
-                    region_with_pair = region_list[region_type_id]
-                    for cell in cell_pair:
-                        cell.candidates = {'dummy'}
-                    for cell, val in itertools.product(cell_pair, val_pair):
-                        update_regions(puzzle, cell.POS[0], cell.POS[1], val, region_with_pair)
+
                     for cell in cell_pair:
                         cell.candidates = set(val_pair)
-
-
-def find_naked_pairs(puzzle):
-    for region_type_id, region_type in enumerate([ROW_ITER, COL_ITER, BLOCK_ITER]):
-        for region in region_type:
-            for val_pair in itertools.combinations(range(1, 9+1), 2):
-                cell_pair = []
-                for row, col in region:
-                    cell = puzzle.cell_array[row][col]
-
-                    if cell.solved() or len(cell.candidates - set(val_pair)) != 0:
-                        continue
-                    if len(cell_pair) < 2:
-                        cell_pair.append(cell)
-                    else:
-                        cell_pair.clear()
-                        break
-                if len(cell_pair) == 2:
-                    print('Found naked pair!')
-                    print('Pair is: ' + str(val_pair[0]) + str(val_pair[1]))
-                    for cell in cell_pair:
-                        cell.print_cell()
-                    region_list = ['row', 'column', 'block']
-                    region_with_pair = region_list[region_type_id]
-                    for cell, val in itertools.product(cell_pair, val_pair):
-                        update_regions(puzzle, cell.POS[0], cell.POS[1], val, region_with_pair)
 
 
 def find_triples(puzzle):

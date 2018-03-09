@@ -20,7 +20,7 @@ def main():
     print('After finding hidden singles:')
     puzzle.print_puzzle()
 
-    for cell in puzzle.cell_array[1]:
+    for cell in [col[3] for col in puzzle.cell_array]:
         cell.print_cell()
     print()
 
@@ -30,8 +30,25 @@ def main():
     print('After finding naked pairs:')
     puzzle.print_puzzle()
 
-    for cell in puzzle.cell_array[6]:
+    for cell in [col[3] for col in puzzle.cell_array]:
         cell.print_cell()
+    print()
+
+    print('Finding naked pairs #2')
+    alg.find_naked_pairs(puzzle)
+    print()
+    print('After finding naked pairs: #2')
+    puzzle.print_puzzle()
+
+    for cell in [col[3] for col in puzzle.cell_array]:
+        cell.print_cell()
+    print()
+
+    print('Finding hidden pairs')
+    alg.find_hidden_pairs(puzzle)
+    print()
+    print('After finding hidden pairs:')
+    puzzle.print_puzzle()
 
     # print('Finding trips')
     # alg.find_triples(puzzle)
