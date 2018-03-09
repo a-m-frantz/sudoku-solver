@@ -1,6 +1,7 @@
 class Cell:
     def __init__(self, row, col, val=None):
         self.POS = (row, col)
+        self.dont_update = False
         if val:
             self.candidates = {val}
         else:
@@ -18,9 +19,8 @@ class Cell:
         # TODO throw some sort of error
 
     def remove_candidate(self, candidate):
-        if candidate in self.candidates and not self.solved():
+        if candidate in self.candidates and not (self.solved() or self.dont_update):
             self.candidates.remove(candidate)
-            # self.print_cell()
             if self.solved():
                 print('Cell ({}, {}) is {}!'.format(self.POS[0], self.POS[1], self.last_candidate()))
                 return True
