@@ -18,7 +18,7 @@ class Cell:
         # TODO throw some sort of error
 
     def remove_candidate(self, candidate):
-        if candidate in self.candidates:
+        if candidate in self.candidates and not self.solved():
             self.candidates.remove(candidate)
             # self.print_cell()
             if self.solved():
@@ -62,7 +62,7 @@ class Puzzle:
             print()
             if row == 2 or row == 5:
                 print('-' * 21)
-        print('\n\n', end='')
+        print()
 
     def print_all_candidates(self):
         for row in range(9):
