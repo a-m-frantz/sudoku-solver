@@ -45,7 +45,7 @@ class Cell:
     def set_cell(self, val_set):
         if val_set == self.candidates:  # candidates already equal to new values
             return
-        self.candidates = val_set
+        self.candidates = self.candidates & val_set
         self.changed = True
         if len(self.candidates) == 1:
             print('Cell ({}, {}) is {}!'.format(self.POS[0], self.POS[1], self.last_candidate()))

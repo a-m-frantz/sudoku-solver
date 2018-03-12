@@ -18,7 +18,7 @@ def main():
         puzzle.reset()
 
         print('Finding hidden singles', end='\n\n')
-        alg.find_hidden_singles(puzzle)
+        alg.find_hidden_sets(puzzle, 1)
         puzzle.check()
 
         print('Finding naked pairs', end='\n\n')
@@ -26,7 +26,7 @@ def main():
         puzzle.check()
 
         print('Finding hidden pairs', end='\n\n')
-        alg.find_hidden_pairs(puzzle)
+        alg.find_hidden_sets(puzzle, 2)
         puzzle.check()
 
         print('Finding naked triples', end='\n\n')
@@ -34,11 +34,15 @@ def main():
         puzzle.check()
 
         print('Finding hidden triples', end='\n\n')
-        alg.find_hidden_triples(puzzle)
+        alg.find_hidden_sets(puzzle, 3)
         puzzle.check()
 
         print('Finding naked quads', end='\n\n')
         alg.find_preemptive_set(puzzle, 4)
+        puzzle.check()
+
+        print('Finding hidden quads', end='\n\n')
+        alg.find_hidden_sets(puzzle, 4)
         puzzle.check()
 
         puzzle.print_puzzle()

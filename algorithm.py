@@ -67,127 +67,52 @@ def update_regions(puzzle, row, col, val, region=''):
                     update_regions(puzzle, x_pos, y_pos, cell.last_candidate())
 
 
-def find_hidden_singles(puzzle):
+def find_hidden_sets(puzzle, n):
     for region_type in [ROW_ITER, COL_ITER, BLOCK_ITER]:
         for region in region_type:
-            for val in range(1, 9+1):
-                only_occurrence = None
-                for row, col in region:
-                    cell = puzzle.cell_array[row][col]
-                    if cell.solved or val not in cell.candidates:
-                        continue
-                    if not only_occurrence:     # val has not occurred yet
-                        only_occurrence = cell
-                    else:                       # val has already occurred
-                        only_occurrence = None
-                        break
-                if only_occurrence:
-                    only_occurrence.set_cell({val})
-                    update_regions(puzzle, only_occurrence.POS[0], only_occurrence.POS[1], val)
-
-
-def find_hidden_pairs(puzzle):
-    for region_type in [ROW_ITER, COL_ITER, BLOCK_ITER]:
-        for region in region_type:
-            for val_pair in itertools.combinations(range(1, 9+1), 2):
-                val_1_matches = []
-                val_2_matches = []
-                cell_pair = []
+            for val_set in itertools.combinations(range(1, 9+1), n):
+                val_set_matches = []
+                for _ in range(n):
+                    val_set_matches.append(set())
+                cells = []
                 for row, col in region:
                     cell = puzzle.cell_array[row][col]
 
-                    if val_pair[0] in cell.candidates:
-                        val_1_matches.append(cell)
-                    if val_pair[1] in cell.candidates:
-                        val_2_matches.append(cell)
-                    if len(val_1_matches) > 2 or len(val_2_matches) > 2:
-                        cell_pair.clear()
+                    # Check if one of the values is already solved
+                    if cell.solved and cell.last_candidate() in val_set:
+                        cells.clear()
                         break
 
-                    # check if not all of val_pair in candidates
-                    if cell.solved or not all(candidate in cell.candidates for candidate in val_pair):
+                    if cell.solved or not any(val in cell.candidates for val in val_set):
                         continue
-                    if len(cell_pair) < 2:
-                        cell_pair.append(cell)
+
+                    for val_index, val in enumerate(val_set):
+                        if val in cell.candidates:
+                            val_set_matches[val_index].add(cell)
+                    if any(len(matches) > n for matches in val_set_matches):
+                        cells.clear()
+                        break
+
+                    if len(cells) < n:
+                        cells.append(cell)
                     else:
-                        cell_pair.clear()
+                        cells.clear()
                         break
-                if len(cell_pair) == 2:
-                    # Check that found pair is hidden, not naked
-                    combined_candidates = cell_pair[0].candidates | cell_pair[1].candidates
-                    if len(combined_candidates - set(val_pair)) == 0:
-                        continue
-                    print('Found hidden pair!')
-                    print('Pair is: ' + str(val_pair[0]) + str(val_pair[1]))
-                    for cell in cell_pair:
-                        cell.print_cell()
-
-                    for cell in cell_pair:
-                        cell.set_cell(set(val_pair))
-
-
-def find_hidden_triples(puzzle):
-    for region_type in [ROW_ITER, COL_ITER, BLOCK_ITER]:
-        for region in region_type:
-            for val_trip in itertools.combinations(range(1, 9+1), 3):
-                val_1_matches = set()
-                val_2_matches = set()
-                val_3_matches = set()
-                cell_trip = []
-                for row, col in region:
-                    cell = puzzle.cell_array[row][col]
-
-                    if val_trip[0] in cell.candidates:
-                        val_1_matches.add(cell)
-                    if val_trip[1] in cell.candidates:
-                        val_2_matches.add(cell)
-                    if val_trip[2] in cell.candidates:
-                        val_3_matches.add(cell)
-                    if len(val_1_matches) > 3 or len(val_2_matches) > 3 or len(val_3_matches) > 3:
-                        cell_trip.clear()
-                        break
-
-                    if cell.solved and cell.last_candidate() in val_trip:
-                        cell_trip.clear()
-                        break
-
-                    # This statement takes care of solved cells
-                    if len(set(val_trip) & cell.candidates) < 2:
-                        continue
-                    if len(cell_trip) < 3:
-                        cell_trip.append(cell)
-                    else:
-                        cell_trip.clear()
-                        break
-                if len(cell_trip) == 3:
-                    all_cell_matches = val_1_matches | val_2_matches | val_3_matches
-                    combined_candidates = (list(cell_trip[0].candidates)
-                                           + list(cell_trip[1].candidates)
-                                           + list(cell_trip[2].candidates))
-                    not_trip = False
-
-                    # Ensure values only appeared in cell_trip
-                    if len(all_cell_matches - set(cell_trip)) != 0:
-                        break
-
-                    # Check that no value only appears in one of the cells
-                    for val in val_trip:
-                        if combined_candidates.count(val) < 2:
-                            not_trip = True
-                            break
-                    if not_trip:
-                        break
+                if len(cells) == n:
+                    combined_candidates = set()
+                    for cell in cells:
+                        combined_candidates = combined_candidates | cell.candidates
 
                     # Check that found trip is hidden, not naked
-                    if len(set(combined_candidates) - set(val_trip)) == 0:
+                    if len(combined_candidates - set(val_set)) == 0:
                         continue
 
-                    print('Found hidden triple!')
-                    print('Trip is: ' + str(val_trip[0]) + str(val_trip[1]) + str(val_trip[2]))
-                    for cell in cell_trip:
+                    print('Found hidden set!')
+                    print('Set is: {}'.format(val_set))
+                    for cell in cells:
                         cell.print_cell()
-                    for cell in cell_trip:
-                        cell.set_cell(set(val_trip))
+                    for cell in cells:
+                        cell.set_cell(set(val_set))
 
 
 def find_preemptive_set(puzzle, n):
