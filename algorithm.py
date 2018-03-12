@@ -67,6 +67,38 @@ def update_regions(puzzle, row, col, val, region=''):
                     update_regions(puzzle, x_pos, y_pos, cell.last_candidate())
 
 
+def find_preemptive_set(puzzle, n):
+    for region_type_id, region_type in enumerate([ROW_ITER, COL_ITER, BLOCK_ITER]):
+        for region in region_type:
+            for preemptive_set in itertools.combinations(range(1, 9+1), n):
+                cells = []
+                for row, col in region:
+                    cell = puzzle.cell_array[row][col]
+
+                    # check that all candidates are in preemptive_set
+                    if cell.solved or len(cell.candidates - set(preemptive_set)) != 0:
+                        continue
+                    if len(cells) < n:
+                        cells.append(cell)
+                    else:
+                        cells.clear()
+                        break
+                if len(cells) == n:
+                    print('Found a preemptive set!')
+                    print('Set is: {}'.format(preemptive_set))
+                    for cell in cells:
+                        cell.print_cell()
+
+                    region_list = ['row', 'column', 'block']
+                    region_with_pair = region_list[region_type_id]
+                    for cell in cells:
+                        cell.dont_update = True
+                    for cell, val in itertools.product(cells, preemptive_set):
+                        update_regions(puzzle, cell.POS[0], cell.POS[1], val, region_with_pair)
+                    for cell in cells:
+                        cell.dont_update = False
+
+
 def find_hidden_sets(puzzle, n):
     for region_type in [ROW_ITER, COL_ITER, BLOCK_ITER]:
         for region in region_type:
@@ -114,34 +146,5 @@ def find_hidden_sets(puzzle, n):
                     for cell in cells:
                         cell.set_cell(set(val_set))
 
+# def supposition(puzzle):
 
-def find_preemptive_set(puzzle, n):
-    for region_type_id, region_type in enumerate([ROW_ITER, COL_ITER, BLOCK_ITER]):
-        for region in region_type:
-            for preemptive_set in itertools.combinations(range(1, 9+1), n):
-                cells = []
-                for row, col in region:
-                    cell = puzzle.cell_array[row][col]
-
-                    # check that all candidates are in preemptive_set
-                    if cell.solved or len(cell.candidates - set(preemptive_set)) != 0:
-                        continue
-                    if len(cells) < n:
-                        cells.append(cell)
-                    else:
-                        cells.clear()
-                        break
-                if len(cells) == n:
-                    print('Found a preemptive set!')
-                    print('Set is: {}'.format(preemptive_set))
-                    for cell in cells:
-                        cell.print_cell()
-
-                    region_list = ['row', 'column', 'block']
-                    region_with_pair = region_list[region_type_id]
-                    for cell in cells:
-                        cell.dont_update = True
-                    for cell, val in itertools.product(cells, preemptive_set):
-                        update_regions(puzzle, cell.POS[0], cell.POS[1], val, region_with_pair)
-                    for cell in cells:
-                        cell.dont_update = False

@@ -68,6 +68,7 @@ class Puzzle:
                     self.cell_array[row].append(Cell(row, col))
                 pos += 1
 
+    @property
     def changed(self):
         for row in range(9):
             for col in range(9):
@@ -76,11 +77,13 @@ class Puzzle:
                     return True
         return False
 
-    def reset(self):
+    @changed.setter
+    def changed(self, changed):
+        assert not changed, 'changed should only be manually reset to \'False\''
         for row in range(9):
             for col in range(9):
                 cell = self.cell_array[row][col]
-                cell.changed = False
+                cell.changed = changed
 
     def check(self):
         for region_type in [ROW_ITER, COL_ITER, BLOCK_ITER]:
