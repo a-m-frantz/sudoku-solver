@@ -91,9 +91,9 @@ class Puzzle:
                     if cell.solved:
                         solved_vals.append(cell.last_candidate())
                 if len(solved_vals) != len(set(solved_vals)):
-                    print('There\'s a mistake!')
+                    print('There\'s a mistake!', end='\n\n')
                     return
-        print('No mistakes in the puzzle')
+        print('No mistakes in the puzzle', end='\n\n')
 
     def print_puzzle(self):
         for row in range(9):

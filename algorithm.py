@@ -86,37 +86,6 @@ def find_hidden_singles(puzzle):
                     update_regions(puzzle, only_occurrence.POS[0], only_occurrence.POS[1], val)
 
 
-def find_naked_pairs(puzzle):
-    for region_type_id, region_type in enumerate([ROW_ITER, COL_ITER, BLOCK_ITER]):
-        for region in region_type:
-            for val_pair in itertools.combinations(range(1, 9+1), 2):
-                cell_pair = []
-                for row, col in region:
-                    cell = puzzle.cell_array[row][col]
-
-                    if cell.solved or cell.candidates != set(val_pair):
-                        continue
-                    if len(cell_pair) < 2:
-                        cell_pair.append(cell)
-                    else:
-                        cell_pair.clear()
-                        break
-                if len(cell_pair) == 2:
-                    print('Found naked pair!')
-                    print('Pair is: ' + str(val_pair[0]) + str(val_pair[1]))
-                    for cell in cell_pair:
-                        cell.print_cell()
-
-                    region_list = ['row', 'column', 'block']
-                    region_with_pair = region_list[region_type_id]
-                    for cell in cell_pair:
-                        cell.dont_update = True
-                    for cell, val in itertools.product(cell_pair, val_pair):
-                        update_regions(puzzle, cell.POS[0], cell.POS[1], val, region_with_pair)
-                    for cell in cell_pair:
-                        cell.dont_update = False
-
-
 def find_hidden_pairs(puzzle):
     for region_type in [ROW_ITER, COL_ITER, BLOCK_ITER]:
         for region in region_type:
@@ -155,37 +124,6 @@ def find_hidden_pairs(puzzle):
 
                     for cell in cell_pair:
                         cell.set_cell(set(val_pair))
-
-
-def find_naked_triples(puzzle):
-    for region_type_id, region_type in enumerate([ROW_ITER, COL_ITER, BLOCK_ITER]):
-        for region in region_type:
-            for val_trip in itertools.combinations(range(1, 9+1), 3):
-                cell_trip = []
-                for row, col in region:
-                    cell = puzzle.cell_array[row][col]
-
-                    if cell.solved or len(cell.candidates - set(val_trip)) != 0:  # no candidates that are not in val_trip
-                        continue
-                    if len(cell_trip) < 3:
-                        cell_trip.append(cell)
-                    else:
-                        cell_trip.clear()
-                        break
-                if len(cell_trip) == 3:
-                    print('Found a naked triple!')
-                    print('Trip is: ' + str(val_trip[0]) + str(val_trip[1]) + str(val_trip[2]))
-                    for cell in cell_trip:
-                        cell.print_cell()
-
-                    region_list = ['row', 'column', 'block']
-                    region_with_pair = region_list[region_type_id]
-                    for cell in cell_trip:
-                        cell.dont_update = True
-                    for cell, val in itertools.product(cell_trip, val_trip):
-                        update_regions(puzzle, cell.POS[0], cell.POS[1], val, region_with_pair)
-                    for cell in cell_trip:
-                        cell.dont_update = False
 
 
 def find_hidden_triples(puzzle):
@@ -250,3 +188,35 @@ def find_hidden_triples(puzzle):
                         cell.print_cell()
                     for cell in cell_trip:
                         cell.set_cell(set(val_trip))
+
+
+def find_preemptive_set(puzzle, n):
+    for region_type_id, region_type in enumerate([ROW_ITER, COL_ITER, BLOCK_ITER]):
+        for region in region_type:
+            for preemptive_set in itertools.combinations(range(1, 9+1), n):
+                cells = []
+                for row, col in region:
+                    cell = puzzle.cell_array[row][col]
+
+                    # check that all candidates are in preemptive_set
+                    if cell.solved or len(cell.candidates - set(preemptive_set)) != 0:
+                        continue
+                    if len(cells) < n:
+                        cells.append(cell)
+                    else:
+                        cells.clear()
+                        break
+                if len(cells) == n:
+                    print('Found a preemptive set!')
+                    print('Set is: {}'.format(preemptive_set))
+                    for cell in cells:
+                        cell.print_cell()
+
+                    region_list = ['row', 'column', 'block']
+                    region_with_pair = region_list[region_type_id]
+                    for cell in cells:
+                        cell.dont_update = True
+                    for cell, val in itertools.product(cells, preemptive_set):
+                        update_regions(puzzle, cell.POS[0], cell.POS[1], val, region_with_pair)
+                    for cell in cells:
+                        cell.dont_update = False
