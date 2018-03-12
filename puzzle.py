@@ -20,6 +20,11 @@ class Cell:
     def changed(self):
         return self._changed
 
+    @changed.setter
+    def changed(self, changed):
+        self._changed = changed
+
+    @property
     def solved(self):
         if len(self.candidates) == 1:
             return True
@@ -27,23 +32,21 @@ class Cell:
             return False
 
     def last_candidate(self):
-        assert self.solved(), 'Asked for last candidate before cell was solved'
+        assert self.solved, 'Asked for last candidate before cell was solved'
         return next(iter(self.candidates))
 
     def remove_candidate(self, candidate):
-        if candidate in self.candidates and not (self.solved() or self.dont_update):
+        if candidate in self.candidates and not (self.solved or self.dont_update):
             self.candidates.remove(candidate)
-            self._changed = True
-            if self.solved():
+            self.changed = True
+            if self.solved:
                 print('Cell ({}, {}) is {}!'.format(self.POS[0], self.POS[1], self.last_candidate()))
-                return True
-        return False
 
     def set_cell(self, val_set):
-        if val_set == self.candidates:
+        if val_set == self.candidates:  # candidates already equal to new values
             return
         self.candidates = val_set
-        self._changed = True
+        self.changed = True
         if len(self.candidates) == 1:
             print('Cell ({}, {}) is {}!'.format(self.POS[0], self.POS[1], self.last_candidate()))
 
@@ -73,13 +76,19 @@ class Puzzle:
                     return True
         return False
 
+    def reset(self):
+        for row in range(9):
+            for col in range(9):
+                cell = self.cell_array[row][col]
+                cell.changed = False
+
     def check(self):
         for region_type in [ROW_ITER, COL_ITER, BLOCK_ITER]:
             for region in region_type:
                 solved_vals = []
                 for row, col in region:
                     cell = self.cell_array[row][col]
-                    if cell.solved():
+                    if cell.solved:
                         solved_vals.append(cell.last_candidate())
                 if len(solved_vals) != len(set(solved_vals)):
                     print('There\'s a mistake!')
@@ -90,7 +99,7 @@ class Puzzle:
         for row in range(9):
             for col in range(9):
                 cell = self.cell_array[row][col]
-                if cell.solved():
+                if cell.solved:
                     print(cell.last_candidate(), end=' ')
                 else:
                     print('.', end=' ')

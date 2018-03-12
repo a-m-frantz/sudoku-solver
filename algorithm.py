@@ -10,7 +10,7 @@ BLOCK_ITER = [[(row, col) for row in rows for col in cols] for rows in BANDS for
 def update_clue_regions(puzzle):
     for row in range(9):
         for col in range(9):
-            if puzzle.cell_array[row][col].solved():
+            if puzzle.cell_array[row][col].solved:
                 val = puzzle.cell_array[row][col].last_candidate()
                 update_regions(puzzle, row, col, val)
     return
@@ -25,8 +25,10 @@ def update_regions(puzzle, row, col, val, region=''):
         for pos in ROW_ITER[row]:
             if pos[1] != col:
                 cell = puzzle.cell_array[pos[0]][pos[1]]
-                just_solved = cell.remove_candidate(val)
-                if just_solved:
+                if cell.solved:
+                    continue
+                cell.remove_candidate(val)
+                if cell.solved:
                     print('Recursing in update_regions()')
                     update_regions(puzzle, pos[0], pos[1], cell.last_candidate())
 
@@ -35,8 +37,10 @@ def update_regions(puzzle, row, col, val, region=''):
         for pos in COL_ITER[col]:
             if pos[0] != row:
                 cell = puzzle.cell_array[pos[0]][pos[1]]
-                just_solved = cell.remove_candidate(val)
-                if just_solved:
+                if cell.solved:
+                    continue
+                cell.remove_candidate(val)
+                if cell.solved:
                     print('Recursing in update_regions()')
                     update_regions(puzzle, pos[0], pos[1], cell.last_candidate())
 
@@ -55,8 +59,10 @@ def update_regions(puzzle, row, col, val, region=''):
         for x_pos in rows:
             for y_pos in cols:
                 cell = puzzle.cell_array[x_pos][y_pos]
-                just_solved = cell.remove_candidate(val)
-                if just_solved:
+                if cell.solved:
+                    continue
+                cell.remove_candidate(val)
+                if cell.solved:
                     print('Recursing in update_regions()')
                     update_regions(puzzle, x_pos, y_pos, cell.last_candidate())
 
@@ -68,7 +74,7 @@ def find_hidden_singles(puzzle):
                 only_occurrence = None
                 for row, col in region:
                     cell = puzzle.cell_array[row][col]
-                    if cell.solved() or val not in cell.candidates:
+                    if cell.solved or val not in cell.candidates:
                         continue
                     if not only_occurrence:     # val has not occurred yet
                         only_occurrence = cell
@@ -88,7 +94,7 @@ def find_naked_pairs(puzzle):
                 for row, col in region:
                     cell = puzzle.cell_array[row][col]
 
-                    if cell.solved() or cell.candidates != set(val_pair):
+                    if cell.solved or cell.candidates != set(val_pair):
                         continue
                     if len(cell_pair) < 2:
                         cell_pair.append(cell)
@@ -130,7 +136,7 @@ def find_hidden_pairs(puzzle):
                         break
 
                     # check if not all of val_pair in candidates
-                    if cell.solved() or not all(candidate in cell.candidates for candidate in val_pair):
+                    if cell.solved or not all(candidate in cell.candidates for candidate in val_pair):
                         continue
                     if len(cell_pair) < 2:
                         cell_pair.append(cell)
@@ -159,7 +165,7 @@ def find_naked_triples(puzzle):
                 for row, col in region:
                     cell = puzzle.cell_array[row][col]
 
-                    if cell.solved() or len(cell.candidates - set(val_trip)) != 0:  # no candidates that are not in val_trip
+                    if cell.solved or len(cell.candidates - set(val_trip)) != 0:  # no candidates that are not in val_trip
                         continue
                     if len(cell_trip) < 3:
                         cell_trip.append(cell)
@@ -203,7 +209,7 @@ def find_hidden_triples(puzzle):
                         cell_trip.clear()
                         break
 
-                    if cell.solved() and cell.last_candidate() in val_trip:
+                    if cell.solved and cell.last_candidate() in val_trip:
                         cell_trip.clear()
                         break
 

@@ -10,11 +10,15 @@ def main():
     print('Starting puzzle:')
     puzzle.print_puzzle()
 
+    print(str(puzzle.changed()))
     print('Removing clues from candidate lists')
     alg.update_clue_regions(puzzle)
     print('Done removing clues from candidate lists', end='\n\n')
+    print(str(puzzle.changed()))
 
-    for _ in range(100):
+    while puzzle.changed():
+        puzzle.reset()
+
         print('Finding hidden singles', end='\n\n')
         alg.find_hidden_singles(puzzle)
         puzzle.check()
