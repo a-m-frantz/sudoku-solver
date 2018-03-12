@@ -14,76 +14,77 @@ def main():
     alg.update_clue_regions(puzzle)
     print('Done removing clues from candidate lists', end='\n\n')
 
-    print('Finding hidden singles')
-    alg.find_hidden_singles(puzzle)
-    print()
-    print('After finding hidden singles:')
-    puzzle.print_puzzle()
+    for _ in range(100):
+        print('Finding hidden singles', end='\n\n')
+        alg.find_hidden_singles(puzzle)
+        puzzle.check()
+        print()
+        print('Finding naked pairs', end='\n\n')
+        alg.find_naked_pairs(puzzle)
+        puzzle.check()
+        print()
+        print('Finding hidden pairs', end='\n\n')
+        alg.find_hidden_pairs(puzzle)
+        puzzle.check()
+        print()
+        print('Finding naked triples', end='\n\n')
+        alg.find_naked_triples(puzzle)
+        puzzle.check()
+        print()
+        print('Finding hidden triples', end='\n\n')
+        alg.find_hidden_triples(puzzle)
+        puzzle.check()
+        print()
+        puzzle.print_puzzle()
+        puzzle.check()
+        print()
 
-    for cell in [col[3] for col in puzzle.cell_array]:
-        cell.print_cell()
-    print()
-
-    print('Finding naked pairs')
-    alg.find_naked_pairs(puzzle)
-    print()
-    print('After finding naked pairs:')
-    puzzle.print_puzzle()
-
-    for cell in [col[3] for col in puzzle.cell_array]:
-        cell.print_cell()
-    print()
-
-    print('Finding naked pairs #2')
-    alg.find_naked_pairs(puzzle)
-    print()
-    print('After finding naked pairs: #2')
-    puzzle.print_puzzle()
-
-    for cell in [col[3] for col in puzzle.cell_array]:
-        cell.print_cell()
-    print()
-
-    print('Finding hidden pairs')
-    alg.find_hidden_pairs(puzzle)
-    print()
-    print('After finding hidden pairs:')
-    puzzle.print_puzzle()
-
-    # print('Finding trips')
-    # alg.find_triples(puzzle)
+    puzzle.print_all_candidates()
+    # print('Finding hidden singles')
+    # alg.find_hidden_singles(puzzle)
     # print()
-    # print('After finding triples:')
+    # print('After finding hidden singles:')
     # puzzle.print_puzzle()
     #
-    # for cell in puzzle.cell_array[0]:
+    # for cell in [col[3] for col in puzzle.cell_array]:
     #     cell.print_cell()
-
-
+    # print()
     #
-    # alg.find_triples(puzzle)
-    # print('After finding triples:')
+    # print('Finding naked pairs')
+    # alg.find_naked_pairs(puzzle)
+    # print()
+    # print('After finding naked pairs:')
     # puzzle.print_puzzle()
     #
-    # puzzle.cell_array[2][0].print_cell()
+    # for cell in [col[3] for col in puzzle.cell_array]:
+    #     cell.print_cell()
+    # print()
     #
-    # alg.find_hidden_singles(puzzle)
-    # print('And singles again:')
+    # print('Finding naked pairs #2')
+    # alg.find_naked_pairs(puzzle)
+    # print()
+    # print('After finding naked pairs: #2')
     # puzzle.print_puzzle()
     #
-    # puzzle.cell_array[2][0].print_cell()
+    # for cell in [col[3] for col in puzzle.cell_array]:
+    #     cell.print_cell()
+    # print()
     #
-    # alg.find_pairs(puzzle)
-    # print('After finding pairs:')
+    # print('Finding hidden pairs')
+    # alg.find_hidden_pairs(puzzle)
+    # print()
+    # print('After finding hidden pairs:')
     # puzzle.print_puzzle()
     #
-    # puzzle.cell_array[2][0].print_cell()
+    # for cell in [col[3] for col in puzzle.cell_array]:
+    #     cell.print_cell()
+    # print()
     #
-    # alg.find_hidden_singles(puzzle)
-    # print('And singles again:')
+    # print('Finding naked triples')
+    # alg.find_naked_triples(puzzle)
+    # print()
+    # print('After finding naked triples:')
     # puzzle.print_puzzle()
-    #
-    # puzzle.cell_array[2][0].print_cell()
 
 
 main()

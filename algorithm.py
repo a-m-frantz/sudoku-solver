@@ -42,6 +42,7 @@ def update_regions(puzzle, row, col, val, region=''):
 
     ### Blocks ###
     if region == '' or region == 'block':
+        rows, cols = [], []
         for horiz_band in BANDS:
             if row in horiz_band:
                 rows = horiz_band[:]
@@ -75,7 +76,7 @@ def find_hidden_singles(puzzle):
                         only_occurrence = None
                         break
                 if only_occurrence:
-                    only_occurrence.solve(val)
+                    only_occurrence.set_cell({val})
                     update_regions(puzzle, only_occurrence.POS[0], only_occurrence.POS[1], val)
 
 
@@ -87,7 +88,7 @@ def find_naked_pairs(puzzle):
                 for row, col in region:
                     cell = puzzle.cell_array[row][col]
 
-                    if cell.solved() or len(cell.candidates - set(val_pair)) != 0:
+                    if cell.solved() or cell.candidates != set(val_pair):
                         continue
                     if len(cell_pair) < 2:
                         cell_pair.append(cell)
@@ -128,6 +129,7 @@ def find_hidden_pairs(puzzle):
                         cell_pair.clear()
                         break
 
+                    # check if not all of val_pair in candidates
                     if cell.solved() or not all(candidate in cell.candidates for candidate in val_pair):
                         continue
                     if len(cell_pair) < 2:
@@ -136,56 +138,109 @@ def find_hidden_pairs(puzzle):
                         cell_pair.clear()
                         break
                 if len(cell_pair) == 2:
+                    # Check that found pair is hidden, not naked
+                    combined_candidates = cell_pair[0].candidates | cell_pair[1].candidates
+                    if len(combined_candidates - set(val_pair)) == 0:
+                        continue
                     print('Found hidden pair!')
                     print('Pair is: ' + str(val_pair[0]) + str(val_pair[1]))
                     for cell in cell_pair:
                         cell.print_cell()
 
                     for cell in cell_pair:
-                        cell.candidates = set(val_pair)
+                        cell.set_cell(set(val_pair))
 
 
-def find_triples(puzzle):
+def find_naked_triples(puzzle):
     for region_type_id, region_type in enumerate([ROW_ITER, COL_ITER, BLOCK_ITER]):
         for region in region_type:
             for val_trip in itertools.combinations(range(1, 9+1), 3):
-                val_1_matches = []
-                val_2_matches = []
-                val_3_matches = []
                 cell_trip = []
                 for row, col in region:
                     cell = puzzle.cell_array[row][col]
 
-                    if cell.solved() and cell.last_candidate() in val_trip:
-                        cell_trip.clear()
-                        break
-
-                    if val_trip[0] in cell.candidates:
-                        val_1_matches.append(cell)
-                    if val_trip[1] in cell.candidates:
-                        val_2_matches.append(cell)
-                    if val_trip[2] in cell.candidates:
-                        val_3_matches.append(cell)
-                    if len(val_1_matches) > 3 or len(val_2_matches) > 3 or len(val_3_matches) > 3:
-                        cell_trip.clear()
-                        break
-
-                    if len(set(val_trip) & cell.candidates) < 2:
+                    if cell.solved() or len(cell.candidates - set(val_trip)) != 0:  # no candidates that are not in val_trip
                         continue
-                    # print(set(val_trip) & cell.candidates)
                     if len(cell_trip) < 3:
                         cell_trip.append(cell)
                     else:
                         cell_trip.clear()
                         break
                 if len(cell_trip) == 3:
-                    print('Found trip!')
+                    print('Found a naked triple!')
                     print('Trip is: ' + str(val_trip[0]) + str(val_trip[1]) + str(val_trip[2]))
-                    print('Length of val_1_matches = ' + str(len(val_1_matches)))
-                    region_with_pair = ['row', 'column', 'block'][region_type_id]
                     for cell in cell_trip:
-                        cell.candidates = {'dummy'}
+                        cell.print_cell()
+
+                    region_list = ['row', 'column', 'block']
+                    region_with_pair = region_list[region_type_id]
+                    for cell in cell_trip:
+                        cell.dont_update = True
                     for cell, val in itertools.product(cell_trip, val_trip):
                         update_regions(puzzle, cell.POS[0], cell.POS[1], val, region_with_pair)
                     for cell in cell_trip:
-                        cell.candidates = set(val_trip)
+                        cell.dont_update = False
+
+
+def find_hidden_triples(puzzle):
+    for region_type in [ROW_ITER, COL_ITER, BLOCK_ITER]:
+        for region in region_type:
+            for val_trip in itertools.combinations(range(1, 9+1), 3):
+                val_1_matches = set()
+                val_2_matches = set()
+                val_3_matches = set()
+                cell_trip = []
+                for row, col in region:
+                    cell = puzzle.cell_array[row][col]
+
+                    if val_trip[0] in cell.candidates:
+                        val_1_matches.add(cell)
+                    if val_trip[1] in cell.candidates:
+                        val_2_matches.add(cell)
+                    if val_trip[2] in cell.candidates:
+                        val_3_matches.add(cell)
+                    if len(val_1_matches) > 3 or len(val_2_matches) > 3 or len(val_3_matches) > 3:
+                        cell_trip.clear()
+                        break
+
+                    if cell.solved() and cell.last_candidate() in val_trip:
+                        cell_trip.clear()
+                        break
+
+                    # This statement takes care of solved cells
+                    if len(set(val_trip) & cell.candidates) < 2:
+                        continue
+                    if len(cell_trip) < 3:
+                        cell_trip.append(cell)
+                    else:
+                        cell_trip.clear()
+                        break
+                if len(cell_trip) == 3:
+                    all_cell_matches = val_1_matches | val_2_matches | val_3_matches
+                    combined_candidates = (list(cell_trip[0].candidates)
+                                           + list(cell_trip[1].candidates)
+                                           + list(cell_trip[2].candidates))
+                    not_trip = False
+
+                    # Ensure values only appeared in cell_trip
+                    if len(all_cell_matches - set(cell_trip)) != 0:
+                        break
+
+                    # Check that no value only appears in one of the cells
+                    for val in val_trip:
+                        if combined_candidates.count(val) < 2:
+                            not_trip = True
+                            break
+                    if not_trip:
+                        break
+
+                    # Check that found trip is hidden, not naked
+                    if len(set(combined_candidates) - set(val_trip)) == 0:
+                        continue
+
+                    print('Found hidden triple!')
+                    print('Trip is: ' + str(val_trip[0]) + str(val_trip[1]) + str(val_trip[2]))
+                    for cell in cell_trip:
+                        cell.print_cell()
+                    for cell in cell_trip:
+                        cell.set_cell(set(val_trip))
