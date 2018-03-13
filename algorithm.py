@@ -83,11 +83,11 @@ def find_preemptive_set(puzzle, n):
                     region_list = ['row', 'column', 'block']
                     region_with_pair = region_list[region_type_id]
                     for cell in cells:
-                        cell.dont_update = True
+                        cell.dont_remove = preemptive_set
                     for cell, val in itertools.product(cells, preemptive_set):
                         update_regions(puzzle, cell.POS[0], cell.POS[1], val, region_with_pair)
                     for cell in cells:
-                        cell.dont_update = False
+                        cell.dont_remove = set()
 
 
 def find_hidden_sets(puzzle, n):
@@ -133,28 +133,50 @@ def find_hidden_sets(puzzle, n):
                         cell.set_cell(set(val_set))
 
 
-def supposition(puzzle):
-    for row in range(9):
-        for col in range(9):
-            original_cell = puzzle.cell_array[row][col]
-            if not original_cell.solved:
-                bad_vals = set()
-                for val in original_cell.candidates:
-                    puzzle_copy = copy.deepcopy(puzzle)
-                    puzzle_copy.cell_array[row][col].set_cell({val})
-                    if not solve(puzzle_copy):
-                        bad_vals.add(val)
-                    else:
-                        break
-                if (len(bad_vals)) > 0:
-                    for val in bad_vals:
-                        original_cell.remove_candidate(val)
-                    solve(puzzle)
-                    if puzzle.solved:
-                        return
+def supposition(puzzle, recursed_into=False):
+    puzzle.changed = True
+    while puzzle.changed:
+        puzzle.changed = False
+        checked_cells = set()
+        largest_set_length = 1
+        largest_set_length_increased = True
+        for min_set_length in range(2, 9+1):
+            if not largest_set_length_increased:
+                break
+            largest_set_length_increased = False
+            for row in range(9):
+                for col in range(9):
+                    cell = puzzle.cell_array[row][col]
+                    if len(cell.candidates) > largest_set_length:
+                        largest_set_length = len(cell.candidates)
+                        largest_set_length_increased = True
+                    if not cell.solved and len(cell.candidates) <= min_set_length and cell not in checked_cells:
+                        checked_cells.add(cell)
+                        bad_vals = set()
+                        for val in cell.candidates:
+                            # if all checked values are bad except last one, last value must be good
+                            if len(cell.candidates - set(bad_vals)) == 1 and not recursed_into:
+                                break
+                            puzzle_copy = copy.deepcopy(puzzle)
+                            copied_cell = puzzle_copy.cell_array[row][col]
+                            copied_cell.set_cell({val})
+                            if not basic_solve(puzzle_copy):
+                                bad_vals.add(val)
+                            else:
+                                if not supposition(puzzle_copy, recursed_into=True):
+                                    bad_vals.add(val)
+                        if recursed_into and len(cell.candidates - set(bad_vals)) == 0:
+                            return False
+                        if (len(bad_vals)) > 0:
+                            for val in bad_vals:
+                                cell.remove_candidate(val)
+                            basic_solve(puzzle)
+                            if puzzle.solved:
+                                return True
+    return True
 
 
-def solve(puzzle, exhaustive=False):
+def basic_solve(puzzle, exhaustive=False):
     while puzzle.changed:
         puzzle.changed = False
 

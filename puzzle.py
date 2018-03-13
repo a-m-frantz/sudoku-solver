@@ -10,7 +10,7 @@ class Cell:
     def __init__(self, row, col, val=None):
         self.POS = (row, col)
         self._changed = False
-        self.dont_update = False
+        self.dont_remove = set()
         if val:
             self.candidates = {val}
         else:
@@ -36,7 +36,7 @@ class Cell:
         return next(iter(self.candidates))
 
     def remove_candidate(self, candidate):
-        if candidate in self.candidates and not self.dont_update:
+        if candidate in self.candidates and candidate not in self.dont_remove:
             assert not self.solved, 'Just attempted to remove the last candidate from a cell'
             self.candidates.remove(candidate)
             self.changed = True
@@ -57,14 +57,17 @@ class Puzzle:
         self._solved = False
         self.cell_array = []
         pos = 0
+        num_clues = 0
         for row in range(9):
             self.cell_array.append([])
             for col in range(9):
                 if raw_puzzle[pos] != '.':
+                    num_clues += 1
                     self.cell_array[row].append(Cell(row, col, int(raw_puzzle[pos])))
                 else:
                     self.cell_array[row].append(Cell(row, col))
                 pos += 1
+        print('Number of clues: {}'.format(num_clues), end='\n\n')
 
     @property
     def changed(self):
@@ -77,7 +80,6 @@ class Puzzle:
 
     @changed.setter
     def changed(self, changed):
-        assert not changed, 'changed should only be manually reset to \'False\''
         for row in range(9):
             for col in range(9):
                 cell = self.cell_array[row][col]
