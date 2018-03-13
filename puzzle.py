@@ -36,19 +36,16 @@ class Cell:
         return next(iter(self.candidates))
 
     def remove_candidate(self, candidate):
-        if candidate in self.candidates and not (self.solved or self.dont_update):
+        if candidate in self.candidates and not self.dont_update:
+            assert not self.solved, 'Just attempted to remove the last candidate from a cell'
             self.candidates.remove(candidate)
             self.changed = True
-            if self.solved:
-                print('Cell ({}, {}) is {}!'.format(self.POS[0], self.POS[1], self.last_candidate()))
 
     def set_cell(self, val_set):
         if val_set == self.candidates:  # candidates already equal to new values
             return
         self.candidates = self.candidates & val_set
         self.changed = True
-        if len(self.candidates) == 1:
-            print('Cell ({}, {}) is {}!'.format(self.POS[0], self.POS[1], self.last_candidate()))
 
     def print_cell(self):
         print('Cell: ({}, {})'.format(self.POS[0], self.POS[1]))
@@ -57,6 +54,7 @@ class Cell:
 
 class Puzzle:
     def __init__(self, raw_puzzle):
+        self._solved = False
         self.cell_array = []
         pos = 0
         for row in range(9):
@@ -85,6 +83,17 @@ class Puzzle:
                 cell = self.cell_array[row][col]
                 cell.changed = changed
 
+    @property
+    def solved(self):
+        for row in range(9):
+            for col in range(9):
+                if not self.cell_array[row][col].solved:
+                    return False
+        if self.check():
+            return True
+        else:
+            return False
+
     def check(self):
         for region_type in [ROW_ITER, COL_ITER, BLOCK_ITER]:
             for region in region_type:
@@ -94,9 +103,8 @@ class Puzzle:
                     if cell.solved:
                         solved_vals.append(cell.last_candidate())
                 if len(solved_vals) != len(set(solved_vals)):
-                    print('There\'s a mistake!', end='\n\n')
-                    return
-        print('No mistakes in the puzzle', end='\n\n')
+                    return False
+        return True
 
     def print_puzzle(self):
         for row in range(9):

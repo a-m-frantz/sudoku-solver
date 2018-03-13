@@ -1,4 +1,5 @@
 import itertools
+import copy
 
 BANDS = [[0, 1, 2], [3, 4, 5], [6, 7, 8]]
 
@@ -18,8 +19,6 @@ def update_clue_regions(puzzle):
 
 # also handles naked singles recursively
 def update_regions(puzzle, row, col, val, region=''):
-    print('Removing {} from candidate lists of cell ({}, {})\'s {} buddies'.format(val, row, col, region))
-
     ### Rows ###
     if region == '' or region == 'row':
         for pos in ROW_ITER[row]:
@@ -29,7 +28,6 @@ def update_regions(puzzle, row, col, val, region=''):
                     continue
                 cell.remove_candidate(val)
                 if cell.solved:
-                    print('Recursing in update_regions()')
                     update_regions(puzzle, pos[0], pos[1], cell.last_candidate())
 
     ### Columns ###
@@ -41,7 +39,6 @@ def update_regions(puzzle, row, col, val, region=''):
                     continue
                 cell.remove_candidate(val)
                 if cell.solved:
-                    print('Recursing in update_regions()')
                     update_regions(puzzle, pos[0], pos[1], cell.last_candidate())
 
     ### Blocks ###
@@ -63,7 +60,6 @@ def update_regions(puzzle, row, col, val, region=''):
                     continue
                 cell.remove_candidate(val)
                 if cell.solved:
-                    print('Recursing in update_regions()')
                     update_regions(puzzle, x_pos, y_pos, cell.last_candidate())
 
 
@@ -84,11 +80,6 @@ def find_preemptive_set(puzzle, n):
                         cells.clear()
                         break
                 if len(cells) == n:
-                    print('Found a preemptive set!')
-                    print('Set is: {}'.format(preemptive_set))
-                    for cell in cells:
-                        cell.print_cell()
-
                     region_list = ['row', 'column', 'block']
                     region_with_pair = region_list[region_type_id]
                     for cell in cells:
@@ -138,13 +129,57 @@ def find_hidden_sets(puzzle, n):
                     # Check that found trip is hidden, not naked
                     if len(combined_candidates - set(val_set)) == 0:
                         continue
-
-                    print('Found hidden set!')
-                    print('Set is: {}'.format(val_set))
-                    for cell in cells:
-                        cell.print_cell()
                     for cell in cells:
                         cell.set_cell(set(val_set))
 
-# def supposition(puzzle):
+
+def supposition(puzzle):
+    for row in range(9):
+        for col in range(9):
+            original_cell = puzzle.cell_array[row][col]
+            if not original_cell.solved:
+                bad_vals = set()
+                for val in original_cell.candidates:
+                    puzzle_copy = copy.deepcopy(puzzle)
+                    puzzle_copy.cell_array[row][col].set_cell({val})
+                    if not solve(puzzle_copy):
+                        bad_vals.add(val)
+                    else:
+                        break
+                if (len(bad_vals)) > 0:
+                    for val in bad_vals:
+                        original_cell.remove_candidate(val)
+                    solve(puzzle)
+                    if puzzle.solved:
+                        return
+
+
+def solve(puzzle, exhaustive=False):
+    while puzzle.changed:
+        puzzle.changed = False
+
+        find_hidden_sets(puzzle, 1)
+        if not puzzle.check():
+            return False
+        find_preemptive_set(puzzle, 2)
+        if not puzzle.check():
+            return False
+        find_hidden_sets(puzzle, 2)
+        if not puzzle.check():
+            return False
+        find_preemptive_set(puzzle, 3)
+        if not puzzle.check():
+            return False
+        find_hidden_sets(puzzle, 3)
+        if not puzzle.check():
+            return False
+
+        if exhaustive:
+            find_preemptive_set(puzzle, 4)
+            if not puzzle.check():
+                return False
+            find_hidden_sets(puzzle, 4)
+            if not puzzle.check():
+                return False
+    return True
 
