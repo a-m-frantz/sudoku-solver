@@ -95,9 +95,10 @@ class Puzzle:
             for col in range(9):
                 if not self.cell_array[row][col].solved:
                     return False
-        if self.check():
+        try:
+            self.check()
             return True
-        else:
+        except SolutionError:
             return False
 
     def check(self):
