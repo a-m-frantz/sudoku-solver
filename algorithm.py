@@ -169,15 +169,14 @@ def supposition(puzzle, recursed_into=False):
                             except SolutionError:
                                 bad_vals.add(val)
                         if recursed_into and len(cell.candidates - set(bad_vals)) == 0:
-                            return False
+                            raise SolutionError()
                         if (len(bad_vals)) > 0:
                             for val in bad_vals:
                                 cell.remove_candidate(val)
                             basic_solve(puzzle)
                             if puzzle.solved:
-                                return True
+                                return
     puzzle.changed = True
-    return True
 
 
 def basic_solve(puzzle, exhaustive=False):
