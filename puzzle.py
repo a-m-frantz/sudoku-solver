@@ -6,6 +6,10 @@ BLOCK_ITER = [[(row, col) for row in rows for col in cols] for rows in BANDS for
 # TODO find a way to avoid these global variables
 
 
+class SolutionError(Exception):
+    pass
+
+
 class Cell:
     def __init__(self, row, col, val=None):
         self.POS = (row, col)
@@ -37,7 +41,8 @@ class Cell:
 
     def remove_candidate(self, candidate):
         if candidate in self.candidates and candidate not in self.dont_remove:
-            assert not self.solved, 'Just attempted to remove the last candidate from a cell'
+            if self.solved:
+                raise SolutionError()
             self.candidates.remove(candidate)
             self.changed = True
 
@@ -54,7 +59,6 @@ class Cell:
 
 class Puzzle:
     def __init__(self, raw_puzzle):
-        self._solved = False
         self.cell_array = []
         pos = 0
         num_clues = 0
@@ -105,8 +109,7 @@ class Puzzle:
                     if cell.solved:
                         solved_vals.append(cell.last_candidate())
                 if len(solved_vals) != len(set(solved_vals)):
-                    return False
-        return True
+                    raise SolutionError()
 
     def print_puzzle(self):
         for row in range(9):

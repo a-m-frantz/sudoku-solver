@@ -1,5 +1,6 @@
 import itertools
 import copy
+from puzzle import SolutionError
 
 BANDS = [[0, 1, 2], [3, 4, 5], [6, 7, 8]]
 
@@ -134,14 +135,13 @@ def find_hidden_sets(puzzle, n):
 
 
 def supposition(puzzle, recursed_into=False):
-    puzzle.changed = True
     while puzzle.changed:
         puzzle.changed = False
         checked_cells = set()
         largest_set_length = 1
         largest_set_length_increased = True
         for min_set_length in range(2, 9+1):
-            if not largest_set_length_increased:
+            if not largest_set_length_increased and min_set_length > largest_set_length:
                 break
             largest_set_length_increased = False
             for row in range(9):
@@ -154,17 +154,20 @@ def supposition(puzzle, recursed_into=False):
                         checked_cells.add(cell)
                         bad_vals = set()
                         for val in cell.candidates:
-                            # if all checked values are bad except last one, last value must be good
+                            # if all checked values are bad except last one, last value must be good unless in recursion
                             if len(cell.candidates - set(bad_vals)) == 1 and not recursed_into:
                                 break
                             puzzle_copy = copy.deepcopy(puzzle)
                             copied_cell = puzzle_copy.cell_array[row][col]
                             copied_cell.set_cell({val})
-                            if not basic_solve(puzzle_copy):
-                                bad_vals.add(val)
-                            else:
-                                if not supposition(puzzle_copy, recursed_into=True):
+                            try:
+                                basic_solve(puzzle_copy)
+                                try:
+                                    supposition(puzzle_copy, recursed_into=True)
+                                except SolutionError:
                                     bad_vals.add(val)
+                            except SolutionError:
+                                bad_vals.add(val)
                         if recursed_into and len(cell.candidates - set(bad_vals)) == 0:
                             return False
                         if (len(bad_vals)) > 0:
@@ -173,6 +176,7 @@ def supposition(puzzle, recursed_into=False):
                             basic_solve(puzzle)
                             if puzzle.solved:
                                 return True
+    puzzle.changed = True
     return True
 
 
@@ -181,27 +185,41 @@ def basic_solve(puzzle, exhaustive=False):
         puzzle.changed = False
 
         find_hidden_sets(puzzle, 1)
-        if not puzzle.check():
-            return False
+        try:
+            puzzle.check()
+        except SolutionError:
+            break
         find_preemptive_set(puzzle, 2)
-        if not puzzle.check():
-            return False
+        try:
+            puzzle.check()
+        except SolutionError:
+            break
         find_hidden_sets(puzzle, 2)
-        if not puzzle.check():
-            return False
+        try:
+            puzzle.check()
+        except SolutionError:
+            break
         find_preemptive_set(puzzle, 3)
-        if not puzzle.check():
-            return False
+        try:
+            puzzle.check()
+        except SolutionError:
+            break
         find_hidden_sets(puzzle, 3)
-        if not puzzle.check():
-            return False
+        try:
+            puzzle.check()
+        except SolutionError:
+            break
 
         if exhaustive:
             find_preemptive_set(puzzle, 4)
-            if not puzzle.check():
-                return False
+            try:
+                puzzle.check()
+            except SolutionError:
+                break
             find_hidden_sets(puzzle, 4)
-            if not puzzle.check():
-                return False
-    return True
+            try:
+                puzzle.check()
+            except SolutionError:
+                break
+    puzzle.changed = True
 

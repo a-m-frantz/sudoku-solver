@@ -27,8 +27,7 @@ def main():
     if puzzle.solved:
         print('Solved puzzle:')
     else:
-        print('Something went wrong!\nThese are the incorrect candidate lists and puzzle')
-        puzzle.print_all_candidates()
+        print('Something went wrong!\nThis is the incorrect  puzzle')
     puzzle.print_puzzle()
 
     t1 = time.time()
