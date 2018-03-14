@@ -169,7 +169,7 @@ def supposition(puzzle, recursed_into=False):
                         if (len(bad_vals)) > 0:
                             for val in bad_vals:
                                 cell.remove_candidate(val)
-                            basic_solve(puzzle)
+                            basic_solve(puzzle, exhaustive=True)
                             if puzzle.solved:
                                 return
     puzzle.changed = True
@@ -180,41 +180,20 @@ def basic_solve(puzzle, exhaustive=False):
         puzzle.changed = False
 
         find_hidden_sets(puzzle, 1)
-        try:
-            puzzle.check()
-        except SolutionError:
-            break
+        puzzle.check()
         find_preemptive_set(puzzle, 2)
-        try:
-            puzzle.check()
-        except SolutionError:
-            break
+        puzzle.check()
         find_hidden_sets(puzzle, 2)
-        try:
-            puzzle.check()
-        except SolutionError:
-            break
+        puzzle.check()
         find_preemptive_set(puzzle, 3)
-        try:
-            puzzle.check()
-        except SolutionError:
-            break
+        puzzle.check()
         find_hidden_sets(puzzle, 3)
-        try:
-            puzzle.check()
-        except SolutionError:
-            break
+        puzzle.check()
 
         if exhaustive:
             find_preemptive_set(puzzle, 4)
-            try:
-                puzzle.check()
-            except SolutionError:
-                break
+            puzzle.check()
             find_hidden_sets(puzzle, 4)
-            try:
-                puzzle.check()
-            except SolutionError:
-                break
+            puzzle.check()
     puzzle.changed = True
 
