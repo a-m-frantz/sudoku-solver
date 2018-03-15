@@ -128,6 +128,100 @@ def find_hidden_sets(puzzle, n):
                         cell.set_cell(set(val_set))
 
 
+def find_overlapping_sets(puzzle):
+    ### Rows ###
+    for row, val in itertools.product(range(9),range(1, 9+1)) :
+        val_solved = False
+        val_in_band = []
+        for band_index, band_row in enumerate(BANDS):
+            for col in band_row:
+                cell = puzzle.cell_array[row][col]
+                if val in cell.candidates:
+                    if cell.solved:
+                        val_solved = True
+                        break
+                    else:
+                        val_in_band.append(band_index)
+                        break
+            if val_solved:
+                break
+        if val_solved or len(val_in_band) != 1:
+            break
+        rows, cols = [], []
+        for horizontal_band in BANDS:
+            if row in horizontal_band:
+                rows = horizontal_band[:]
+                break
+        cols = BANDS[val_in_band[0]]
+        rows.remove(row)
+        for row_num, col_num in itertools.product(rows, cols):
+            cell = puzzle.cell_array[row_num][col_num]
+            previously_solved = cell.solved
+            cell.remove_candidate(val)
+            if cell.solved and not previously_solved:
+                update_peers(puzzle, row_num, col_num, cell.last_candidate())
+
+    ### Columns ###
+    for col, val in itertools.product(range(9), range(1, 9 + 1)):
+        val_solved = False
+        val_in_band = []
+        for band_index, band_col in enumerate(BANDS):
+            for row in band_col:
+                cell = puzzle.cell_array[row][col]
+                if val in cell.candidates:
+                    if cell.solved:
+                        val_solved = True
+                        break
+                    else:
+                        val_in_band.append(band_index)
+                        break
+            if val_solved:
+                break
+        if val_solved or len(val_in_band) != 1:
+            break
+        rows, cols = [], []
+        for vertical_band in BANDS:
+            if col in vertical_band:
+                cols = vertical_band[:]
+                break
+        rows = BANDS[val_in_band[0]]
+        cols.remove(col)
+        for row_num, col_num in itertools.product(rows, cols):
+            cell = puzzle.cell_array[row_num][col_num]
+            previously_solved = cell.solved
+            cell.remove_candidate(val)
+            if cell.solved and not previously_solved:
+                update_peers(puzzle, row_num, col_num, cell.last_candidate())
+
+    # ### Blocks ###
+    # for horizontal_band, vertical_band, val in itertools.product(BANDS, BANDS, range(1, 9 + 1)):
+    #     val_solved = False
+    #     val_in_block = []
+    #     # Horizontal #
+    #     for band_row_index, row in enumerate(horizontal_band):
+    #         for band_col in vertical_band:
+    #             cell = puzzle.cell_array[row][band_col]
+    #             if val in cell.candidates:
+    #                 if cell.solved:
+    #                     val_solved = True
+    #                     break
+    #                 else:
+    #                     val_in_block.append(band_row_index)
+    #                     break
+    #             if val_solved:
+    #                 break
+    #         if val_solved or len(val_in_block) != 1:
+    #             break
+    #         for inner_horizontal_band in BANDS:
+    #
+    # for row_num, col_num in itertools.product(rows, cols):
+    #     cell = puzzle.cell_array[row_num][col_num]
+    #     previously_solved = cell.solved
+    #     cell.remove_candidate(val)
+    #     if cell.solved and not previously_solved:
+    #         update_peers(puzzle, row_num, col_num, cell.last_candidate())
+
+
 def basic_solve(puzzle):
     while puzzle.changed:
         puzzle.changed = False
@@ -145,6 +239,8 @@ def basic_solve(puzzle):
         find_preemptive_set(puzzle, 4)
         puzzle.check()
         find_hidden_sets(puzzle, 4)
+        puzzle.check()
+        find_overlapping_sets(puzzle)
         puzzle.check()
     puzzle.changed = True
 
