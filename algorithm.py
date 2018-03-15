@@ -9,45 +9,45 @@ COL_ITER = [[(row, col) for row in range(9)] for col in range(9)]
 BLOCK_ITER = [[(row, col) for row in rows for col in cols] for rows in BANDS for cols in BANDS]
 
 
-def update_clue_regions(puzzle):
+def update_clue_peers(puzzle):
     for row, col in itertools.product(range(9), range(9)):
         if puzzle.cell_array[row][col].solved:
             val = puzzle.cell_array[row][col].last_candidate()
-            update_regions(puzzle, row, col, val)
+            update_peers(puzzle, row, col, val)
 
 
 # also handles naked singles recursively
-def update_regions(puzzle, row, col, val, region=''):
+def update_peers(puzzle, row, col, val, unit_type=''):
     ### Rows ###
-    if region == '' or region == 'row':
+    if unit_type == '' or unit_type == 'row':
         for pos in ROW_ITER[row]:
             if pos[1] != col:
                 cell = puzzle.cell_array[pos[0]][pos[1]]
                 previously_solved = cell.solved
                 cell.remove_candidate(val)
                 if cell.solved and not previously_solved:
-                    update_regions(puzzle, pos[0], pos[1], cell.last_candidate())
+                    update_peers(puzzle, pos[0], pos[1], cell.last_candidate())
 
     ### Columns ###
-    if region == '' or region == 'column':
+    if unit_type == '' or unit_type == 'column':
         for pos in COL_ITER[col]:
             if pos[0] != row:
                 cell = puzzle.cell_array[pos[0]][pos[1]]
                 previously_solved = cell.solved
                 cell.remove_candidate(val)
                 if cell.solved and not previously_solved:
-                    update_regions(puzzle, pos[0], pos[1], cell.last_candidate())
+                    update_peers(puzzle, pos[0], pos[1], cell.last_candidate())
 
     ### Blocks ###
-    if region == '' or region == 'block':
+    if unit_type == '' or unit_type == 'block':
         rows, cols = [], []
-        for horiz_band in BANDS:
-            if row in horiz_band:
-                rows = horiz_band[:]
+        for horizontal_band in BANDS:
+            if row in horizontal_band:
+                rows = horizontal_band[:]
                 break
-        for vert_band in BANDS:
-            if col in vert_band:
-                cols = vert_band[:]
+        for vertical_band in BANDS:
+            if col in vertical_band:
+                cols = vertical_band[:]
                 break
         # 4 of the cells in the block were updated with the row and column. Don't update again
         rows.remove(row)
@@ -57,15 +57,15 @@ def update_regions(puzzle, row, col, val, region=''):
             previously_solved = cell.solved
             cell.remove_candidate(val)
             if cell.solved and not previously_solved:
-                update_regions(puzzle, x_pos, y_pos, cell.last_candidate())
+                update_peers(puzzle, x_pos, y_pos, cell.last_candidate())
 
 
 def find_preemptive_set(puzzle, n):
-    for region_type_id, region_type in enumerate([ROW_ITER, COL_ITER, BLOCK_ITER]):
-        for region in region_type:
+    for unit_type_id, unit_type in enumerate([ROW_ITER, COL_ITER, BLOCK_ITER]):
+        for unit in unit_type:
             for preemptive_set in itertools.combinations(range(1, 9+1), n):
                 cells = []
-                for row, col in region:
+                for row, col in unit:
                     cell = puzzle.cell_array[row][col]
 
                     # check that all candidates are in preemptive_set
@@ -77,23 +77,23 @@ def find_preemptive_set(puzzle, n):
                         cells.clear()
                         break
                 if len(cells) == n:
-                    region_list = ['row', 'column', 'block']
-                    region_with_pair = region_list[region_type_id]
+                    unit_list = ['row', 'column', 'block']
+                    unit_with_pair = unit_list[unit_type_id]
                     for cell in cells:
                         cell.dont_remove = preemptive_set
                     for cell, val in itertools.product(cells, preemptive_set):
-                        update_regions(puzzle, cell.POS[0], cell.POS[1], val, region_with_pair)
+                        update_peers(puzzle, cell.POS[0], cell.POS[1], val, unit_with_pair)
                     for cell in cells:
                         cell.dont_remove = set()
 
 
 def find_hidden_sets(puzzle, n):
-    for region_type in [ROW_ITER, COL_ITER, BLOCK_ITER]:
-        for region in region_type:
+    for unit_type in [ROW_ITER, COL_ITER, BLOCK_ITER]:
+        for unit in unit_type:
             for val_set in itertools.combinations(range(1, 9+1), n):
                 val_set_matches = [set() for _ in range(n)]
                 cells = []
-                for row, col in region:
+                for row, col in unit:
                     cell = puzzle.cell_array[row][col]
 
                     # Check if one of the values is already solved
@@ -126,6 +126,27 @@ def find_hidden_sets(puzzle, n):
                         continue
                     for cell in cells:
                         cell.set_cell(set(val_set))
+
+
+def basic_solve(puzzle):
+    while puzzle.changed:
+        puzzle.changed = False
+
+        find_hidden_sets(puzzle, 1)
+        puzzle.check()
+        find_preemptive_set(puzzle, 2)
+        puzzle.check()
+        find_hidden_sets(puzzle, 2)
+        puzzle.check()
+        find_preemptive_set(puzzle, 3)
+        puzzle.check()
+        find_hidden_sets(puzzle, 3)
+        puzzle.check()
+        find_preemptive_set(puzzle, 4)
+        puzzle.check()
+        find_hidden_sets(puzzle, 4)
+        puzzle.check()
+    puzzle.changed = True
 
 
 def supposition(puzzle, recursed_into=False):
@@ -171,25 +192,3 @@ def supposition(puzzle, recursed_into=False):
                             if puzzle.solved:
                                 return
     puzzle.changed = True
-
-
-def basic_solve(puzzle):
-    while puzzle.changed:
-        puzzle.changed = False
-
-        find_hidden_sets(puzzle, 1)
-        puzzle.check()
-        find_preemptive_set(puzzle, 2)
-        puzzle.check()
-        find_hidden_sets(puzzle, 2)
-        puzzle.check()
-        find_preemptive_set(puzzle, 3)
-        puzzle.check()
-        find_hidden_sets(puzzle, 3)
-        puzzle.check()
-        find_preemptive_set(puzzle, 4)
-        puzzle.check()
-        find_hidden_sets(puzzle, 4)
-        puzzle.check()
-    puzzle.changed = True
-

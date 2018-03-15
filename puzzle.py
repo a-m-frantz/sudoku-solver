@@ -108,10 +108,10 @@ class Puzzle:
             return False
 
     def check(self):
-        for region_type in [ROW_ITER, COL_ITER, BLOCK_ITER]:
-            for region in region_type:
+        for unit_type in [ROW_ITER, COL_ITER, BLOCK_ITER]:
+            for unit in unit_type:
                 solved_vals = []
-                for row, col in region:
+                for row, col in unit:
                     cell = self.cell_array[row][col]
                     if cell.solved:
                         solved_vals.append(cell.last_candidate())

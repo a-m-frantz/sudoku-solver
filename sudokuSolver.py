@@ -13,7 +13,7 @@ def main():
     print('Solving...', end='\n\n')
 
     t0 = time.time()
-    alg.update_clue_regions(puzzle)
+    alg.update_clue_peers(puzzle)
     alg.basic_solve(puzzle)
     if not puzzle.solved:
         print('Have to guess and check for remaining unsolved cells\nThe puzzle so far is:')
