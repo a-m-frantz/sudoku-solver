@@ -17,8 +17,12 @@ class Cell:
         self.dont_remove = set()
         if val:
             self.candidates = {val}
+            self._solved = True
+            self._last_candidate = val
         else:
             self.candidates = {val for val in range(1, 9+1)}
+            self._solved = False
+            self._last_candidate = None
 
     @property
     def changed(self):
@@ -30,14 +34,10 @@ class Cell:
 
     @property
     def solved(self):
-        if len(self.candidates) == 1:
-            return True
-        else:
-            return False
+        return self._solved
 
     def last_candidate(self):
-        assert self.solved, 'Asked for last candidate before cell was solved'
-        return next(iter(self.candidates))
+        return self._last_candidate
 
     def remove_candidate(self, candidate):
         if candidate in self.candidates and candidate not in self.dont_remove:
@@ -45,12 +45,18 @@ class Cell:
                 raise SolutionError()
             self.candidates.remove(candidate)
             self.changed = True
+            if len(self.candidates) == 1:
+                self._solved = True
+                self._last_candidate = next(iter(self.candidates))
 
     def set_cell(self, val_set):
         if val_set == self.candidates:  # candidates already equal to new values
             return
         self.candidates = self.candidates & val_set
         self.changed = True
+        if len(self.candidates) == 1:
+            self._solved = True
+            self._last_candidate = next(iter(self.candidates))
 
     def print_cell(self):
         print('Cell: ({}, {})'.format(self.POS[0], self.POS[1]))

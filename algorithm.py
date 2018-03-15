@@ -91,9 +91,7 @@ def find_hidden_sets(puzzle, n):
     for region_type in [ROW_ITER, COL_ITER, BLOCK_ITER]:
         for region in region_type:
             for val_set in itertools.combinations(range(1, 9+1), n):
-                val_set_matches = []
-                for _ in range(n):
-                    val_set_matches.append(set())
+                val_set_matches = [set() for _ in range(n)]
                 cells = []
                 for row, col in region:
                     cell = puzzle.cell_array[row][col]
@@ -169,13 +167,13 @@ def supposition(puzzle, recursed_into=False):
                         if (len(bad_vals)) > 0:
                             for val in bad_vals:
                                 cell.remove_candidate(val)
-                            basic_solve(puzzle, exhaustive=True)
+                            basic_solve(puzzle)
                             if puzzle.solved:
                                 return
     puzzle.changed = True
 
 
-def basic_solve(puzzle, exhaustive=False):
+def basic_solve(puzzle):
     while puzzle.changed:
         puzzle.changed = False
 
@@ -189,11 +187,9 @@ def basic_solve(puzzle, exhaustive=False):
         puzzle.check()
         find_hidden_sets(puzzle, 3)
         puzzle.check()
-
-        if exhaustive:
-            find_preemptive_set(puzzle, 4)
-            puzzle.check()
-            find_hidden_sets(puzzle, 4)
-            puzzle.check()
+        find_preemptive_set(puzzle, 4)
+        puzzle.check()
+        find_hidden_sets(puzzle, 4)
+        puzzle.check()
     puzzle.changed = True
 
