@@ -128,7 +128,7 @@ def find_hidden_sets(puzzle, n):
                         cell.set_cell(set(val_set))
 
 
-def find_overlapping_sets(puzzle):
+def find_overlapping_units(puzzle):
     ### Rows ###
     for row, val in itertools.product(range(9), range(1, 9+1)):
         val_solved = False
@@ -206,42 +206,40 @@ def find_overlapping_sets(puzzle):
                 update_peers(puzzle, row_num, col_num, cell.last_candidate())
 
     ### Blocks ###
-    # for row, val in itertools.product(range(9), range(1, 9+1)):
-    #     val_solved = False
-    #     val_in_bands = []
-    #     # vertical band in regards to whole puzzle. Contents of vertical_band are columns on same row
-    #     for band_index, vertical_band in enumerate(BANDS):
-    #         for col in vertical_band:
-    #             cell = puzzle.cell_array[row][col]
-    #             if val in cell.candidates:
-    #                 # if value has been solved, break all loops until val loop
-    #                 if cell.solved:
-    #                     val_solved = True
-    #                     break
-    #                 else:
-    #                     # val is in this vertical band. Don't care how many times it shows up, so don't check the rest
-    #                     val_in_bands.append(band_index)
-    #                     break
-    #         if val_solved:
-    #             break
-    #     # If value is solved or appears in more than one band, go to next value
-    #     if val_solved or len(val_in_bands) != 1:
-    #         break
-    #     vertical_band_index = val_in_bands[0]
-    #     rows, cols = [], []
-    #     # Find which horizontal band row is in (horizontal in regards to whole puzzle)
-    #     for horizontal_band in BANDS:
-    #         if row in horizontal_band:
-    #             rows = horizontal_band[:]
-    #             break
-    #     rows.remove(row)
-    #     cols = BANDS[vertical_band_index]
-    #     for row_num, col_num in itertools.product(rows, cols):
-    #         cell = puzzle.cell_array[row_num][col_num]
-    #         previously_solved = cell.solved
-    #         cell.remove_candidate(val)
-    #         if cell.solved and not previously_solved:
-    #             update_peers(puzzle, row_num, col_num, cell.last_candidate())
+    for val in range(1, 9+1):
+        # Horizontal #
+        for block_horizontal_band, block_vertical_band in itertools.product(BANDS, repeat=2):
+            val_solved = False
+            val_in_rows = []
+            for row_index, row in enumerate(block_horizontal_band):
+                for col in block_vertical_band:
+                    cell = puzzle.cell_array[row][col]
+                    if val in cell.candidates:
+                        if cell.solved:
+                            val_solved = True
+                            break
+                        else:
+                            # val is in this row. Don't care how many times it shows up, so don't check the rest
+                            val_in_rows.append(row_index)
+                            break
+                if val_solved:
+                    break
+            # If value is solved or appears in more than one row, go to next block
+            if val_solved or len(val_in_rows) != 1:
+                break
+            row_index = val_in_rows[0]
+            row_to_update = block_horizontal_band[row_index]
+            cols = []
+            for vertical_band in BANDS:  # TODO Make a list comprehension or something
+                if block_vertical_band != vertical_band:
+                    for col in vertical_band:
+                        cols.append(col)
+            for col in cols:
+                cell = puzzle.cell_array[row_to_update][col]
+                previously_solved = cell.solved
+                cell.remove_candidate(val)
+                if cell.solved and not previously_solved:
+                    update_peers(puzzle, row_to_update, col, cell.last_candidate())
 
 
 def basic_solve(puzzle):
@@ -262,7 +260,7 @@ def basic_solve(puzzle):
         puzzle.check()
         find_hidden_sets(puzzle, 4)
         puzzle.check()
-        find_overlapping_sets(puzzle)
+        find_overlapping_units(puzzle)
         puzzle.check()
     puzzle.changed = True
 
