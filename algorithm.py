@@ -130,30 +130,36 @@ def find_hidden_sets(puzzle, n):
 
 def find_overlapping_sets(puzzle):
     ### Rows ###
-    for row, val in itertools.product(range(9),range(1, 9+1)) :
+    for row, val in itertools.product(range(9), range(1, 9+1)):
         val_solved = False
-        val_in_band = []
-        for band_index, band_row in enumerate(BANDS):
-            for col in band_row:
+        val_in_bands = []
+        # vertical band in regards to whole puzzle. Contents of vertical_band are columns on same row
+        for band_index, vertical_band in enumerate(BANDS):
+            for col in vertical_band:
                 cell = puzzle.cell_array[row][col]
                 if val in cell.candidates:
+                    # if value has been solved, break all loops until val loop
                     if cell.solved:
                         val_solved = True
                         break
                     else:
-                        val_in_band.append(band_index)
+                        # val is in this vertical band. Don't care how many times it shows up, so don't check the rest
+                        val_in_bands.append(band_index)
                         break
             if val_solved:
                 break
-        if val_solved or len(val_in_band) != 1:
+        # If value is solved or appears in more than one band, go to next value
+        if val_solved or len(val_in_bands) != 1:
             break
+        vertical_band_index = val_in_bands[0]
         rows, cols = [], []
+        # Find which horizontal band row is in (horizontal in regards to whole puzzle)
         for horizontal_band in BANDS:
             if row in horizontal_band:
                 rows = horizontal_band[:]
                 break
-        cols = BANDS[val_in_band[0]]
         rows.remove(row)
+        cols = BANDS[vertical_band_index]
         for row_num, col_num in itertools.product(rows, cols):
             cell = puzzle.cell_array[row_num][col_num]
             previously_solved = cell.solved
@@ -162,30 +168,36 @@ def find_overlapping_sets(puzzle):
                 update_peers(puzzle, row_num, col_num, cell.last_candidate())
 
     ### Columns ###
-    for col, val in itertools.product(range(9), range(1, 9 + 1)):
+    for col, val in itertools.product(range(9), range(1, 9+1)):
         val_solved = False
-        val_in_band = []
-        for band_index, band_col in enumerate(BANDS):
-            for row in band_col:
+        val_in_bands = []
+        # horizontal band in regards to whole puzzle. Contents of horizontal_band are columns on same row
+        for band_index, horizontal_band in enumerate(BANDS):
+            for row in horizontal_band:
                 cell = puzzle.cell_array[row][col]
                 if val in cell.candidates:
+                    # if value has been solved, break all loops until val loop
                     if cell.solved:
                         val_solved = True
                         break
                     else:
-                        val_in_band.append(band_index)
+                        # val is in this horizontal band. Don't care how many times it shows up, so don't check the rest
+                        val_in_bands.append(band_index)
                         break
             if val_solved:
                 break
-        if val_solved or len(val_in_band) != 1:
+        # If value is solved or appears in more than one band, go to next value
+        if val_solved or len(val_in_bands) != 1:
             break
+        horizontal_band_index = val_in_bands[0]
         rows, cols = [], []
+        # Find which horizontal band row is in (horizontal in regards to whole puzzle)
         for vertical_band in BANDS:
             if col in vertical_band:
                 cols = vertical_band[:]
                 break
-        rows = BANDS[val_in_band[0]]
         cols.remove(col)
+        rows = BANDS[horizontal_band_index]
         for row_num, col_num in itertools.product(rows, cols):
             cell = puzzle.cell_array[row_num][col_num]
             previously_solved = cell.solved
@@ -193,33 +205,43 @@ def find_overlapping_sets(puzzle):
             if cell.solved and not previously_solved:
                 update_peers(puzzle, row_num, col_num, cell.last_candidate())
 
-    # ### Blocks ###
-    # for horizontal_band, vertical_band, val in itertools.product(BANDS, BANDS, range(1, 9 + 1)):
+    ### Blocks ###
+    # for row, val in itertools.product(range(9), range(1, 9+1)):
     #     val_solved = False
-    #     val_in_block = []
-    #     # Horizontal #
-    #     for band_row_index, row in enumerate(horizontal_band):
-    #         for band_col in vertical_band:
-    #             cell = puzzle.cell_array[row][band_col]
+    #     val_in_bands = []
+    #     # vertical band in regards to whole puzzle. Contents of vertical_band are columns on same row
+    #     for band_index, vertical_band in enumerate(BANDS):
+    #         for col in vertical_band:
+    #             cell = puzzle.cell_array[row][col]
     #             if val in cell.candidates:
+    #                 # if value has been solved, break all loops until val loop
     #                 if cell.solved:
     #                     val_solved = True
     #                     break
     #                 else:
-    #                     val_in_block.append(band_row_index)
+    #                     # val is in this vertical band. Don't care how many times it shows up, so don't check the rest
+    #                     val_in_bands.append(band_index)
     #                     break
-    #             if val_solved:
-    #                 break
-    #         if val_solved or len(val_in_block) != 1:
+    #         if val_solved:
     #             break
-    #         for inner_horizontal_band in BANDS:
-    #
-    # for row_num, col_num in itertools.product(rows, cols):
-    #     cell = puzzle.cell_array[row_num][col_num]
-    #     previously_solved = cell.solved
-    #     cell.remove_candidate(val)
-    #     if cell.solved and not previously_solved:
-    #         update_peers(puzzle, row_num, col_num, cell.last_candidate())
+    #     # If value is solved or appears in more than one band, go to next value
+    #     if val_solved or len(val_in_bands) != 1:
+    #         break
+    #     vertical_band_index = val_in_bands[0]
+    #     rows, cols = [], []
+    #     # Find which horizontal band row is in (horizontal in regards to whole puzzle)
+    #     for horizontal_band in BANDS:
+    #         if row in horizontal_band:
+    #             rows = horizontal_band[:]
+    #             break
+    #     rows.remove(row)
+    #     cols = BANDS[vertical_band_index]
+    #     for row_num, col_num in itertools.product(rows, cols):
+    #         cell = puzzle.cell_array[row_num][col_num]
+    #         previously_solved = cell.solved
+    #         cell.remove_candidate(val)
+    #         if cell.solved and not previously_solved:
+    #             update_peers(puzzle, row_num, col_num, cell.last_candidate())
 
 
 def basic_solve(puzzle):
