@@ -11,34 +11,34 @@ BLOCK_ITER = [[(row, col) for row in rows for col in cols] for rows in BANDS for
 
 def update_clue_peers(puzzle):
     for row, col in itertools.product(range(9), range(9)):
-        if puzzle.cell_array[row][col].solved:
+        if puzzle.cell_array[row][col].is_solved():
             val = puzzle.cell_array[row][col].last_candidate()
             update_peers(puzzle, row, col, val)
 
 
 # also handles naked singles recursively
 def update_peers(puzzle, row, col, val, unit_type=''):
-    ### Rows ###
+    # Rows #
     if unit_type == '' or unit_type == 'row':
         for pos in ROW_ITER[row]:
             if pos[1] != col:
                 cell = puzzle.cell_array[pos[0]][pos[1]]
-                previously_solved = cell.solved
+                previously_solved = cell.is_solved()
                 cell.remove_candidate(val)
-                if cell.solved and not previously_solved:
+                if cell.is_solved() and not previously_solved:
                     update_peers(puzzle, pos[0], pos[1], cell.last_candidate())
 
-    ### Columns ###
+    # Columns #
     if unit_type == '' or unit_type == 'column':
         for pos in COL_ITER[col]:
             if pos[0] != row:
                 cell = puzzle.cell_array[pos[0]][pos[1]]
-                previously_solved = cell.solved
+                previously_solved = cell.is_solved()
                 cell.remove_candidate(val)
-                if cell.solved and not previously_solved:
+                if cell.is_solved() and not previously_solved:
                     update_peers(puzzle, pos[0], pos[1], cell.last_candidate())
 
-    ### Blocks ###
+    # Blocks #
     if unit_type == '' or unit_type == 'block':
         rows, cols = [], []
         for horizontal_band in BANDS:
@@ -54,9 +54,9 @@ def update_peers(puzzle, row, col, val, unit_type=''):
         cols.remove(col)
         for x_pos, y_pos in itertools.product(rows, cols):
             cell = puzzle.cell_array[x_pos][y_pos]
-            previously_solved = cell.solved
+            previously_solved = cell.is_solved()
             cell.remove_candidate(val)
-            if cell.solved and not previously_solved:
+            if cell.is_solved() and not previously_solved:
                 update_peers(puzzle, x_pos, y_pos, cell.last_candidate())
 
 
@@ -69,7 +69,7 @@ def find_preemptive_set(puzzle, n):
                     cell = puzzle.cell_array[row][col]
 
                     # check that all candidates are in preemptive_set
-                    if cell.solved or len(cell.candidates - set(preemptive_set)) != 0:
+                    if cell.is_solved() or len(cell.candidates - set(preemptive_set)) != 0:  # TODO look into speeding this up
                         continue
                     if len(cells) < n:
                         cells.append(cell)
@@ -90,27 +90,31 @@ def find_preemptive_set(puzzle, n):
 def find_hidden_sets(puzzle, n):
     for unit_type in [ROW_ITER, COL_ITER, BLOCK_ITER]:
         for unit in unit_type:
-            for val_set in itertools.combinations(range(1, 9+1), n):
+            for val_tup in itertools.combinations(range(1, 9+1), n):
+                val_set = set(val_tup)
                 val_set_matches = [set() for _ in range(n)]
                 cells = []
                 for row, col in unit:
                     cell = puzzle.cell_array[row][col]
 
-                    # Check if one of the values is already solved
-                    if cell.solved and cell.last_candidate() in val_set:
+                    # Check if one of the values is already solved. If one is, break and look at next value set
+                    if cell.is_solved() and cell.last_candidate() in val_set:
                         cells.clear()
                         break
 
-                    if cell.solved or not any(val in cell.candidates for val in val_set):
+                    # If cell is solved or none of val_set appears in it's candidate list, continue to next cell
+                    if cell.is_solved() or len(val_set & cell.candidates) == 0:
                         continue
 
                     for val_index, val in enumerate(val_set):
                         if val in cell.candidates:
                             val_set_matches[val_index].add(cell)
+                    # If a value appears in a greater number of cells than the size of the set, break
                     if any(len(matches) > n for matches in val_set_matches):
                         cells.clear()
                         break
 
+                    # If more than n cells have matching values, this val_set is not hidden
                     if len(cells) < n:
                         cells.append(cell)
                     else:
@@ -122,14 +126,13 @@ def find_hidden_sets(puzzle, n):
                         combined_candidates = combined_candidates | cell.candidates
 
                     # Check that found trip is hidden, not naked
-                    if len(combined_candidates - set(val_set)) == 0:
+                    if len(combined_candidates - val_set) == 0:
                         continue
                     for cell in cells:
-                        cell.set_cell(set(val_set))
+                        cell.set_cell(val_set)
 
 
-def find_overlapping_units(puzzle):
-    ### Rows ###
+def _overlap_rows(puzzle):
     for row, val in itertools.product(range(9), range(1, 9+1)):
         val_solved = False
         val_in_bands = []
@@ -138,12 +141,12 @@ def find_overlapping_units(puzzle):
             for col in vertical_band:
                 cell = puzzle.cell_array[row][col]
                 if val in cell.candidates:
-                    # if value has been solved, break all loops until val loop
-                    if cell.solved:
+                    # if value has been solved, break all loops until outer val loop
+                    if cell.is_solved():
                         val_solved = True
                         break
                     else:
-                        # val is in this vertical band. Don't care how many times it shows up, so don't check the rest
+                        # value is in this vertical band. Don't care how many times it shows up, so don't check the rest
                         val_in_bands.append(band_index)
                         break
             if val_solved:
@@ -162,12 +165,13 @@ def find_overlapping_units(puzzle):
         cols = BANDS[vertical_band_index]
         for row_num, col_num in itertools.product(rows, cols):
             cell = puzzle.cell_array[row_num][col_num]
-            previously_solved = cell.solved
+            previously_solved = cell.is_solved()
             cell.remove_candidate(val)
-            if cell.solved and not previously_solved:
+            if cell.is_solved() and not previously_solved:
                 update_peers(puzzle, row_num, col_num, cell.last_candidate())
 
-    ### Columns ###
+
+def _overlap_cols(puzzle):
     for col, val in itertools.product(range(9), range(1, 9+1)):
         val_solved = False
         val_in_bands = []
@@ -176,8 +180,8 @@ def find_overlapping_units(puzzle):
             for row in horizontal_band:
                 cell = puzzle.cell_array[row][col]
                 if val in cell.candidates:
-                    # if value has been solved, break all loops until val loop
-                    if cell.solved:
+                    # if value has been solved, break all loops until outer val loop
+                    if cell.is_solved():
                         val_solved = True
                         break
                     else:
@@ -200,14 +204,14 @@ def find_overlapping_units(puzzle):
         rows = BANDS[horizontal_band_index]
         for row_num, col_num in itertools.product(rows, cols):
             cell = puzzle.cell_array[row_num][col_num]
-            previously_solved = cell.solved
+            previously_solved = cell.is_solved()
             cell.remove_candidate(val)
-            if cell.solved and not previously_solved:
+            if cell.is_solved() and not previously_solved:
                 update_peers(puzzle, row_num, col_num, cell.last_candidate())
 
-    ### Blocks ###
+
+def _overlap_blocks_horizontal(puzzle):
     for val in range(1, 9+1):
-        # Horizontal #
         for block_horizontal_band, block_vertical_band in itertools.product(BANDS, repeat=2):
             val_solved = False
             val_in_rows = []
@@ -215,11 +219,11 @@ def find_overlapping_units(puzzle):
                 for col in block_vertical_band:
                     cell = puzzle.cell_array[row][col]
                     if val in cell.candidates:
-                        if cell.solved:
+                        if cell.is_solved():
                             val_solved = True
                             break
                         else:
-                            # val is in this row. Don't care how many times it shows up, so don't check the rest
+                            # value is in this row. Don't care how many times it shows up, so don't check the rest
                             val_in_rows.append(row_index)
                             break
                 if val_solved:
@@ -234,12 +238,14 @@ def find_overlapping_units(puzzle):
               if vertical_band != block_vertical_band] for vertical_band in BANDS]
             for col in cols:
                 cell = puzzle.cell_array[row_to_update][col]
-                previously_solved = cell.solved
+                previously_solved = cell.is_solved()
                 cell.remove_candidate(val)
-                if cell.solved and not previously_solved:
+                if cell.is_solved() and not previously_solved:
                     update_peers(puzzle, row_to_update, col, cell.last_candidate())
 
-        # Vertical #
+
+def _overlap_blocks_vertical(puzzle):
+    for val in range(1, 9+1):
         for block_vertical_band, block_horizontal_band in itertools.product(BANDS, repeat=2):
             val_solved = False
             val_in_cols = []
@@ -247,11 +253,11 @@ def find_overlapping_units(puzzle):
                 for row in block_horizontal_band:
                     cell = puzzle.cell_array[row][col]
                     if val in cell.candidates:
-                        if cell.solved:
+                        if cell.is_solved():
                             val_solved = True
                             break
                         else:
-                            # val is in this col. Don't care how many times it shows up, so don't check the rest
+                            # value is in this col. Don't care how many times it shows up, so don't check the rest
                             val_in_cols.append(col_index)
                             break
                 if val_solved:
@@ -266,10 +272,17 @@ def find_overlapping_units(puzzle):
               if horizontal_band != block_horizontal_band] for horizontal_band in BANDS]
             for row in rows:
                 cell = puzzle.cell_array[row][col_to_update]
-                previously_solved = cell.solved
+                previously_solved = cell.is_solved()
                 cell.remove_candidate(val)
-                if cell.solved and not previously_solved:
+                if cell.is_solved() and not previously_solved:
                     update_peers(puzzle, row, col_to_update, cell.last_candidate())
+
+
+def find_overlapping_units(puzzle):
+    _overlap_rows(puzzle)
+    _overlap_cols(puzzle)
+    _overlap_blocks_horizontal(puzzle)
+    _overlap_blocks_vertical(puzzle)
 
 
 def basic_solve(puzzle):
@@ -311,7 +324,7 @@ def supposition(puzzle, recursed_into=False):
                     if len(cell.candidates) > largest_set_length:
                         largest_set_length = len(cell.candidates)
                         largest_set_length_increased = True
-                    if not cell.solved and len(cell.candidates) <= min_set_length and cell not in checked_cells:
+                    if not cell.is_solved() and len(cell.candidates) <= min_set_length and cell not in checked_cells:
                         checked_cells.add(cell)
                         bad_vals = set()
                         for val in cell.candidates:

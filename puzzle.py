@@ -24,16 +24,10 @@ class Cell:
             self._solved = False
             self._last_candidate = None
 
-    @property
-    def changed(self):
+    def is_changed(self):
         return self._changed
 
-    @changed.setter
-    def changed(self, changed):
-        self._changed = changed
-
-    @property
-    def solved(self):
+    def is_solved(self):
         return self._solved
 
     def last_candidate(self):
@@ -41,10 +35,10 @@ class Cell:
 
     def remove_candidate(self, candidate):
         if candidate in self.candidates and candidate not in self.dont_remove:
-            if self.solved:
+            if self.is_solved():
                 raise SolutionError()
             self.candidates.remove(candidate)
-            self.changed = True
+            self._changed = True
             if len(self.candidates) == 1:
                 self._solved = True
                 self._last_candidate = next(iter(self.candidates))
@@ -53,7 +47,7 @@ class Cell:
         if val_set == self.candidates:  # candidates already equal to new values
             return
         self.candidates = self.candidates & val_set
-        self.changed = True
+        self._changed = True
         if len(self.candidates) == 1:
             self._solved = True
             self._last_candidate = next(iter(self.candidates))
@@ -84,7 +78,7 @@ class Puzzle:
         for row in range(9):
             for col in range(9):
                 cell = self.cell_array[row][col]
-                if cell.changed:
+                if cell.is_changed():
                     return True
         return False
 
@@ -93,13 +87,13 @@ class Puzzle:
         for row in range(9):
             for col in range(9):
                 cell = self.cell_array[row][col]
-                cell.changed = changed
+                cell._changed = changed
 
     @property
     def solved(self):
         for row in range(9):
             for col in range(9):
-                if not self.cell_array[row][col].solved:
+                if not self.cell_array[row][col].is_solved():
                     return False
         try:
             self.check()
@@ -113,7 +107,7 @@ class Puzzle:
                 solved_vals = []
                 for row, col in unit:
                     cell = self.cell_array[row][col]
-                    if cell.solved:
+                    if cell.is_solved():
                         solved_vals.append(cell.last_candidate())
                 if len(solved_vals) != len(set(solved_vals)):
                     raise SolutionError()
@@ -122,7 +116,7 @@ class Puzzle:
         for row in range(9):
             for col in range(9):
                 cell = self.cell_array[row][col]
-                if cell.solved:
+                if cell.is_solved():
                     print(cell.last_candidate(), end=' ')
                 else:
                     print('.', end=' ')
