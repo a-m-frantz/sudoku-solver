@@ -239,6 +239,38 @@ def find_overlapping_units(puzzle):
                 if cell.solved and not previously_solved:
                     update_peers(puzzle, row_to_update, col, cell.last_candidate())
 
+        # Vertical #
+        for block_vertical_band, block_horizontal_band in itertools.product(BANDS, repeat=2):
+            val_solved = False
+            val_in_cols = []
+            for col_index, col in enumerate(block_vertical_band):
+                for row in block_horizontal_band:
+                    cell = puzzle.cell_array[row][col]
+                    if val in cell.candidates:
+                        if cell.solved:
+                            val_solved = True
+                            break
+                        else:
+                            # val is in this col. Don't care how many times it shows up, so don't check the rest
+                            val_in_cols.append(col_index)
+                            break
+                if val_solved:
+                    break
+            # If value is solved or appears in more than one row, go to next block
+            if val_solved or len(val_in_cols) != 1:
+                break
+            col_index = val_in_cols[0]
+            col_to_update = block_vertical_band[col_index]
+            rows = []
+            [[rows.append(row) for row in horizontal_band
+              if horizontal_band != block_horizontal_band] for horizontal_band in BANDS]
+            for row in rows:
+                cell = puzzle.cell_array[row][col_to_update]
+                previously_solved = cell.solved
+                cell.remove_candidate(val)
+                if cell.solved and not previously_solved:
+                    update_peers(puzzle, row, col_to_update, cell.last_candidate())
+
 
 def basic_solve(puzzle):
     while puzzle.changed:
