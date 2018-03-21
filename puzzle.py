@@ -44,9 +44,10 @@ class Cell:
                 self._last_candidate = next(iter(self.candidates))
 
     def set_cell(self, val_set):
-        if val_set == self.candidates:  # candidates already equal to new values
+        new_candidates = self.candidates & val_set
+        if self.candidates == new_candidates:  # candidates already equal to new values
             return
-        self.candidates = self.candidates & val_set
+        self.candidates = new_candidates
         self._changed = True
         if len(self.candidates) == 1:
             self._solved = True
