@@ -130,6 +130,8 @@ def find_hidden_sets(puzzle, n):
                         continue
                     for cell in cells:
                         cell.set_cell(val_set)
+                        if cell.is_solved():
+                            update_peers(puzzle, cell.POS[0], cell.POS[1], cell.last_candidate())
 
 
 def _overlap_rows(puzzle):
@@ -334,6 +336,7 @@ def supposition(puzzle, recursed_into=False):
                             puzzle_copy = copy.deepcopy(puzzle)
                             copied_cell = puzzle_copy.cell_array[row][col]
                             copied_cell.set_cell({val})
+                            update_peers(puzzle_copy, row, col, {val})
                             try:
                                 basic_solve(puzzle_copy)
                                 try:
@@ -347,6 +350,8 @@ def supposition(puzzle, recursed_into=False):
                         if (len(bad_vals)) > 0:
                             for val in bad_vals:
                                 cell.remove_candidate(val)
+                            if cell.is_solved():
+                                update_peers(puzzle, cell.POS[0], cell.POS[1], cell.last_candidate())
                             basic_solve(puzzle)
                             if puzzle.solved:
                                 return
