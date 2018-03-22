@@ -85,10 +85,15 @@ class Puzzle:
 
     @changed.setter
     def changed(self, changed):
-        for row in range(9):
-            for col in range(9):
-                cell = self.cell_array[row][col]
-                cell._changed = changed
+        # if changed being set to false, all cells _changed must be false
+        if not changed:
+            for row in range(9):
+                for col in range(9):
+                    cell = self.cell_array[row][col]
+                    cell._changed = changed
+        # if changed being set to true, only one cell _changed must be true
+        elif changed:
+            self.cell_array[0][0]._changed = changed
 
     @property
     def solved(self):

@@ -307,10 +307,11 @@ def basic_solve(puzzle):
         puzzle.check()
         find_overlapping_units(puzzle)
         puzzle.check()
-    puzzle.changed = True
 
 
 def supposition(puzzle, recursed_into=False):
+    # supposition() is called after basic_solve, which always exits with puzzle.changed == False. Must be reset to True
+    puzzle.changed = True
     while puzzle.changed:
         puzzle.changed = False
         checked_cells = set()
@@ -355,4 +356,3 @@ def supposition(puzzle, recursed_into=False):
                             basic_solve(puzzle)
                             if puzzle.solved:
                                 return
-    puzzle.changed = True
