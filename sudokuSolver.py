@@ -17,7 +17,7 @@ def main():
     alg.basic_solve(puzzle)
     if not puzzle.solved:
         print('Basic solving techniques weren\'t enough.\n'
-              'Have to use supposition for remaining unsolved cells\nThe puzzle so far is:')
+              'Have to use supposition for remaining unsolved cells.\nThe puzzle so far is:')
         puzzle.print_puzzle()
         t1 = time.time()
         total_time = t1 - t0

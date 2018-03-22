@@ -1,3 +1,6 @@
+import itertools
+import copy
+
 BANDS = [[0, 1, 2], [3, 4, 5], [6, 7, 8]]
 
 ROW_ITER = [[(row, col) for col in range(9)] for row in range(9)]
@@ -23,6 +26,22 @@ class Cell:
             self.candidates = {val for val in range(1, 9+1)}
             self._solved = False
             self._last_candidate = None
+
+    def __deepcopy__(self, memodict={}):
+        cls = self.__class__
+        result = cls.__new__(cls)
+        memodict[id(self)] = result
+        result.POS = self.POS
+        result._changed = False
+        result.dont_remove = set()
+        result.candidates = copy.deepcopy(self.candidates)
+        if len(result.candidates) == 1:
+            result._solved = True
+            result._last_candidate = next(iter(result.candidates))
+        else:
+            result._solved = False
+            result._last_candidate = None
+        return result
 
     def is_changed(self):
         return self._changed
@@ -60,19 +79,26 @@ class Cell:
 
 class Puzzle:
     def __init__(self, raw_puzzle):
-        self.cell_array = []
+        self.cell_array = [[] for _ in range(9)]
         pos = 0
         num_clues = 0
-        for row in range(9):
-            self.cell_array.append([])
-            for col in range(9):
-                if raw_puzzle[pos] != '.':
-                    num_clues += 1
-                    self.cell_array[row].append(Cell(row, col, int(raw_puzzle[pos])))
-                else:
-                    self.cell_array[row].append(Cell(row, col))
-                pos += 1
+        for row, col in itertools.product(range(9), repeat=2):
+            if raw_puzzle[pos] != '.':
+                num_clues += 1
+                self.cell_array[row].append(Cell(row, col, int(raw_puzzle[pos])))
+            else:
+                self.cell_array[row].append(Cell(row, col))
+            pos += 1
         print('Number of clues: {}'.format(num_clues), end='\n\n')
+
+    def __deepcopy__(self, memodict={}):
+        cls = self.__class__
+        result = cls.__new__(cls)
+        memodict[id(self)] = result
+        result.cell_array = [[] for _ in range(9)]
+        for row, col in itertools.product(range(9), repeat=2):
+            result.cell_array[row].append(copy.deepcopy(self.cell_array[row][col]))
+        return result
 
     @property
     def changed(self):
