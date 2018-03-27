@@ -10,14 +10,31 @@ BLOCK_ITER = [[(row, col) for row in rows for col in cols] for rows in BANDS for
 
 
 def update_clue_peers(puzzle):
+    """
+    Update the candidate lists of the clues' peers.  Clues are cells whose values are known when the puzzle starts.
+
+    Only call after puzzle initialization.
+
+    :param puzzle: Puzzle object
+    """
     for row, col in itertools.product(range(9), range(9)):
         if puzzle.cell_array[row][col].is_solved():
             val = puzzle.cell_array[row][col].last_candidate()
             update_peers(puzzle, row, col, val)
 
 
-# also handles naked singles recursively
 def update_peers(puzzle, row, col, val, unit_type=''):
+    """
+    Update the peers of a cell identified by it's row and column number.
+
+    If removing a candidate solves a cell, recursively update that cell's peers.
+
+    :param puzzle: Puzzle object
+    :param row: int identifying the row the cell is in
+    :param col: int identifying the column the cell is in
+    :param val: The value that needs to be removed from the cell's peers
+    :param unit_type: Optional str argument to only update one of the cell's units. Either 'row', 'column', or 'block'
+    """
     # Rows #
     if unit_type == '' or unit_type == 'row':
         for pos in ROW_ITER[row]:
@@ -61,6 +78,16 @@ def update_peers(puzzle, row, col, val, unit_type=''):
 
 
 def find_preemptive_set(puzzle, n):
+    """
+    Find preemptive sets and remove them from the candidate lists of other cells in the unit.
+
+    A preemptive set is a set of values, size 'n', that are the only possible values for a set of cells, size 'n',
+    within the same unit.  Preemptive sets can be safely removed from any cell in the unit that could be a value not
+    inside of the preemptive set.  Preemptive sets are often called naked sets.
+
+    :param puzzle: Puzzle object
+    :param n: size of preemptive sets to be found
+    """
     for unit_type_id, unit_type in enumerate([ROW_ITER, COL_ITER, BLOCK_ITER]):
         for unit in unit_type:
             for preemptive_set in itertools.combinations(range(1, 9+1), n):
@@ -69,7 +96,7 @@ def find_preemptive_set(puzzle, n):
                     cell = puzzle.cell_array[row][col]
 
                     # check that all candidates are in preemptive_set
-                    if cell.is_solved() or len(cell.candidates - set(preemptive_set)) != 0:  # TODO look into speeding this up
+                    if cell.is_solved() or len(cell.candidates - set(preemptive_set)) != 0:  # TODO try speeding this up
                         continue
                     if len(cells) < n:
                         cells.append(cell)
@@ -88,6 +115,16 @@ def find_preemptive_set(puzzle, n):
 
 
 def find_hidden_sets(puzzle, n):
+    """
+    Find hidden sets and remove other values from the cells' candidate lists.
+
+    A hidden set is a set of values, size 'n', which only appear in the candidate lists of a set of cells, size 'n',
+    within the same unit.  Every value that is not in the hidden set can be safely removed from that cell's
+    candidate list.
+
+    :param puzzle: Puzzle object
+    :param n: size of hidden sets to be found
+    """
     for unit_type in [ROW_ITER, COL_ITER, BLOCK_ITER]:
         for unit in unit_type:
             for val_tup in itertools.combinations(range(1, 9+1), n):
@@ -138,7 +175,7 @@ def _overlap_rows(puzzle):
     for row, val in itertools.product(range(9), range(1, 9+1)):
         val_solved = False
         val_in_bands = []
-        # vertical band in regards to whole puzzle. Contents of vertical_band are columns on same row
+        # band is vertical in regards to whole puzzle. Contents of vertical_band are columns on same row
         for band_index, vertical_band in enumerate(BANDS):
             for col in vertical_band:
                 cell = puzzle.cell_array[row][col]
@@ -158,7 +195,7 @@ def _overlap_rows(puzzle):
             break
         vertical_band_index = val_in_bands[0]
         rows, cols = [], []
-        # Find which horizontal band row is in (horizontal in regards to whole puzzle)
+        # Find which horizontal band 'row' is in (horizontal in regards to whole puzzle)
         for horizontal_band in BANDS:
             if row in horizontal_band:
                 rows = horizontal_band[:]
@@ -177,7 +214,7 @@ def _overlap_cols(puzzle):
     for col, val in itertools.product(range(9), range(1, 9+1)):
         val_solved = False
         val_in_bands = []
-        # horizontal band in regards to whole puzzle. Contents of horizontal_band are columns on same row
+        # band is horizontal in regards to whole puzzle. Contents of horizontal_band are columns on same row
         for band_index, horizontal_band in enumerate(BANDS):
             for row in horizontal_band:
                 cell = puzzle.cell_array[row][col]
@@ -197,7 +234,7 @@ def _overlap_cols(puzzle):
             break
         horizontal_band_index = val_in_bands[0]
         rows, cols = [], []
-        # Find which horizontal band row is in (horizontal in regards to whole puzzle)
+        # Find which vertical band 'col' is in (vertical in regards to whole puzzle)
         for vertical_band in BANDS:
             if col in vertical_band:
                 cols = vertical_band[:]
@@ -281,6 +318,12 @@ def _overlap_blocks_vertical(puzzle):
 
 
 def find_overlapping_units(puzzle):
+    """
+    Search each unit for values that only appear in one overlapping unit and remove that value from the other cells
+    in the overlapping unit.
+
+    :param puzzle: Puzzle object
+    """
     _overlap_rows(puzzle)
     _overlap_cols(puzzle)
     _overlap_blocks_horizontal(puzzle)
@@ -288,6 +331,11 @@ def find_overlapping_units(puzzle):
 
 
 def basic_solve(puzzle):
+    """
+    Solve puzzle using non-recursive techniques.
+
+    :param puzzle: Puzzle object
+    """
     while puzzle.changed:
         puzzle.changed = False
 
@@ -309,8 +357,14 @@ def basic_solve(puzzle):
         puzzle.check()
 
 
-def supposition(puzzle, recursed_into=False):
-    # supposition() is called after basic_solve, which always exits with puzzle.changed == False. Must be reset to True
+def guess_and_check(puzzle, recursed_into=False):
+    """
+    Solve puzzle by assigning a random valid value to unsolved cells and removing candidates which result in errors.
+
+    :param puzzle: Puzzle object
+    :param recursed_into: bool identifying this as a top level or recursive call
+    """
+    # guess_and_check() is always called after basic_solve, which always exits with puzzle.changed == False
     puzzle.changed = True
     while puzzle.changed:
         puzzle.changed = False
@@ -341,7 +395,7 @@ def supposition(puzzle, recursed_into=False):
                             try:
                                 basic_solve(puzzle_copy)
                                 try:
-                                    supposition(puzzle_copy, recursed_into=True)
+                                    guess_and_check(puzzle_copy, recursed_into=True)
                                 except SolutionError:
                                     bad_vals.add(val)
                             except SolutionError:
@@ -355,4 +409,4 @@ def supposition(puzzle, recursed_into=False):
                                 update_peers(puzzle, cell.POS[0], cell.POS[1], cell.last_candidate())
                             basic_solve(puzzle)
                             if puzzle.solved:
-                                return
+                                return  # TODO find way to send solved puzzle up call stack
