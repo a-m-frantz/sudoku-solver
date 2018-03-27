@@ -18,7 +18,7 @@ def suppress_stdout():
 
 
 def test():
-    num_tests = 100
+    num_tests = 10
     print('####################################')
     print('# Timing sudokuSolver over {} runs #'.format(num_tests))
     print('####################################', end='\n\n')

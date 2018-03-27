@@ -337,7 +337,7 @@ def supposition(puzzle, recursed_into=False):
                             puzzle_copy = copy.deepcopy(puzzle)
                             copied_cell = puzzle_copy.cell_array[row][col]
                             copied_cell.set_cell({val})
-                            update_peers(puzzle_copy, row, col, {val})
+                            update_peers(puzzle_copy, row, col, val)
                             try:
                                 basic_solve(puzzle_copy)
                                 try:
