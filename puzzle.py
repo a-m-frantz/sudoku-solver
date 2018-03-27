@@ -97,7 +97,7 @@ class Puzzle:
         memodict[id(self)] = result
         result.cell_array = [[] for _ in range(9)]
         for row, col in itertools.product(range(9), repeat=2):
-            result.cell_array[row].append(copy.deepcopy(self.cell_array[row][col]))
+            result.cell_array[row].append(copy.deepcopy(self.cell_array[row][col], memodict))
         return result
 
     @property
