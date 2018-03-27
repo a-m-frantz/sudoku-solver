@@ -9,23 +9,9 @@ COL_ITER = [[(row, col) for row in range(9)] for col in range(9)]
 BLOCK_ITER = [[(row, col) for row in rows for col in cols] for rows in BANDS for cols in BANDS]
 
 
-def update_clue_peers(puzzle):
-    """
-    Update the candidate lists of the clues' peers.  Clues are cells whose values are known when the puzzle starts.
-
-    Only call after puzzle initialization.
-
-    :param puzzle: Puzzle object
-    """
-    for row, col in itertools.product(range(9), range(9)):
-        if puzzle.cell_array[row][col].is_solved():
-            val = puzzle.cell_array[row][col].last_candidate()
-            update_peers(puzzle, row, col, val)
-
-
 def update_peers(puzzle, row, col, val, unit_type=''):
     """
-    Update the peers of a cell identified by it's row and column number.
+    Remove a value from the candidate lists of a cell's peers.
 
     If removing a candidate solves a cell, recursively update that cell's peers.
 
@@ -75,6 +61,20 @@ def update_peers(puzzle, row, col, val, unit_type=''):
             cell.remove_candidate(val)
             if cell.is_solved() and not previously_solved:
                 update_peers(puzzle, x_pos, y_pos, cell.last_candidate())
+
+
+def update_clue_peers(puzzle):
+    """
+    Update the candidate lists of the clues' peers.  Clues are cells whose values are known when the puzzle starts.
+
+    Only call after puzzle initialization.
+
+    :param puzzle: Puzzle object
+    """
+    for row, col in itertools.product(range(9), range(9)):
+        if puzzle.cell_array[row][col].is_solved():
+            val = puzzle.cell_array[row][col].last_candidate()
+            update_peers(puzzle, row, col, val)
 
 
 def find_preemptive_set(puzzle, n):

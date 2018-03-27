@@ -34,5 +34,6 @@ def main():
     puzzle.print_puzzle()
     print('Time to solve: {}'.format(total_time))
 
+
 if __name__ == '__main__':
     main()
