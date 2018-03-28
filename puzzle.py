@@ -17,8 +17,7 @@ class SolutionError(Exception):
 class Cell:
     """A single cell of a sudoku puzzle"""
     def __init__(self, row, col, val=None):
-        """
-        Initialize a cell.
+        """Initialize a cell.
 
         :param row: cell's row
         :param col: cell's column
@@ -96,8 +95,7 @@ class Cell:
 class Puzzle:
     """A sudoku puzzle."""
     def __init__(self, raw_puzzle):
-        """
-        Initialize the puzzle.
+        """Initialize the puzzle.
 
         :param raw_puzzle: 81 char string with '.' for unknown cells and 1-9 for clues. First 9 chars are first row, etc
         """

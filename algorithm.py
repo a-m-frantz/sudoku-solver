@@ -10,8 +10,7 @@ BLOCK_ITER = [[(row, col) for row in rows for col in cols] for rows in BANDS for
 
 
 def update_peers(puzzle, row, col, val, unit_type=''):
-    """
-    Remove a value from the candidate lists of a cell's peers.
+    """Remove a value from the candidate lists of a cell's peers.
 
     If removing a candidate solves a cell, recursively update that cell's peers.
 
@@ -64,8 +63,7 @@ def update_peers(puzzle, row, col, val, unit_type=''):
 
 
 def update_clue_peers(puzzle):
-    """
-    Update the candidate lists of the clues' peers.  Clues are cells whose values are known when the puzzle starts.
+    """Update the candidate lists of the clues' peers.  Clues are cells whose values are known when the puzzle starts.
 
     Only call after puzzle initialization.
 
@@ -78,8 +76,7 @@ def update_clue_peers(puzzle):
 
 
 def find_preemptive_set(puzzle, n):
-    """
-    Find preemptive sets and remove them from the candidate lists of other cells in the unit.
+    """Find preemptive sets and remove them from the candidate lists of other cells in the unit.
 
     A preemptive set is a set of values, size 'n', that are the only possible values for a set of cells, size 'n',
     within the same unit.  Preemptive sets can be safely removed from any cell in the unit that could be a value not
@@ -115,8 +112,7 @@ def find_preemptive_set(puzzle, n):
 
 
 def find_hidden_sets(puzzle, n):
-    """
-    Find hidden sets and remove other values from the cells' candidate lists.
+    """Find hidden sets and remove other values from the cells' candidate lists.
 
     A hidden set is a set of values, size 'n', which only appear in the candidate lists of a set of cells, size 'n',
     within the same unit.  Every value that is not in the hidden set can be safely removed from that cell's
@@ -318,8 +314,7 @@ def _overlap_blocks_vertical(puzzle):
 
 
 def find_overlapping_units(puzzle):
-    """
-    Search each unit for values that only appear in one overlapping unit and remove that value from the other cells
+    """Search each unit for values that only appear in one overlapping unit and remove that value from the other cells
     in the overlapping unit.
 
     :param puzzle: Puzzle object
@@ -331,8 +326,7 @@ def find_overlapping_units(puzzle):
 
 
 def basic_solve(puzzle):
-    """
-    Solve puzzle using non-recursive techniques.
+    """Solve puzzle using non-recursive techniques.
 
     :param puzzle: Puzzle object
     """
@@ -358,8 +352,7 @@ def basic_solve(puzzle):
 
 
 def guess_and_check(puzzle, recursed_into=False):
-    """
-    Solve puzzle by assigning a random valid value to unsolved cells and removing candidates which result in errors.
+    """Solve puzzle by assigning a random valid value to unsolved cells and removing candidates which result in errors.
 
     :param puzzle: Puzzle object
     :param recursed_into: bool identifying this as a top level or recursive call
