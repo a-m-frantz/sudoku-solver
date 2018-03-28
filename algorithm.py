@@ -388,7 +388,11 @@ def guess_and_check(puzzle, recursed_into=False):
                             try:
                                 basic_solve(puzzle_copy)
                                 try:
-                                    guess_and_check(puzzle_copy, recursed_into=True)
+                                    solved_puzzle = guess_and_check(puzzle_copy, recursed_into=True)
+                                    if solved_puzzle:
+                                        return solved_puzzle
+                                    else:
+                                        del solved_puzzle
                                 except SolutionError:
                                     bad_vals.add(val)
                             except SolutionError:
@@ -402,4 +406,5 @@ def guess_and_check(puzzle, recursed_into=False):
                                 update_peers(puzzle, cell.POS[0], cell.POS[1], cell.last_candidate())
                             basic_solve(puzzle)
                             if puzzle.solved:
-                                return  # TODO find way to send solved puzzle up call stack
+                                return puzzle
+    return None
