@@ -384,8 +384,8 @@ def guess_and_check(puzzle, recursed_into=False):
                             puzzle_copy = copy.deepcopy(puzzle)
                             copied_cell = puzzle_copy.cell_array[row][col]
                             copied_cell.set_cell({val})
-                            update_peers(puzzle_copy, row, col, val)
                             try:
+                                update_peers(puzzle_copy, row, col, val)
                                 basic_solve(puzzle_copy)
                                 try:
                                     solved_puzzle = guess_and_check(puzzle_copy, recursed_into=True)
