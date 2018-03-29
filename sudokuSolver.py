@@ -21,7 +21,7 @@ def main():
         puzzle.print_puzzle()
         t1 = time.time()
         total_time = t1 - t0
-        print('Time it took to solve up to guessing and checking: {}'.format(total_time), end='\n\n')
+        print('Time it took to solve up to guessing and checking: {0:.4f}'.format(total_time), end='\n\n')
         puzzle = alg.guess_and_check(puzzle)
 
     t1 = time.time()
@@ -32,7 +32,7 @@ def main():
     else:
         print('Something went wrong!\nThis is an incorrect solution:')
     puzzle.print_puzzle()
-    print('Time to solve: {}'.format(total_time))
+    print('Time to solve: {0:.4f}'.format(total_time))
 
 
 if __name__ == '__main__':
