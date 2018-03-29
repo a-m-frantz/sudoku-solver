@@ -129,14 +129,15 @@ def find_hidden_sets(puzzle, n):
                 cells = []
                 for row, col in unit:
                     cell = puzzle.cell_array[row][col]
+                    cell_solved = cell.is_solved()
 
                     # Check if one of the values is already solved. If one is, break and look at next value set
-                    if cell.is_solved() and cell.last_candidate() in val_set:
+                    if cell_solved and cell.last_candidate() in val_set:
                         cells.clear()
                         break
 
                     # If cell is solved or none of val_set appears in it's candidate list, continue to next cell
-                    if cell.is_solved() or len(val_set & cell.candidates) == 0:
+                    if cell_solved or len(val_set & cell.candidates) == 0:
                         continue
 
                     for val_index, val in enumerate(val_set):
