@@ -316,8 +316,8 @@ def _vertical_block_sub_unit_exclusions(puzzle):
 
 
 def find_sub_unit_exclusions(puzzle):
-    """Search each unit for values that only appear in one overlapping unit and remove that value from the other cells
-    in the overlapping unit.
+    """Search each unit for values that only appear in one sub unit
+    and remove them from the rest of the overlapping unit.
 
     :param puzzle: Puzzle object
     """
@@ -355,9 +355,11 @@ def basic_solve(puzzle):
 
 def guess_and_check(puzzle, recursed_into=False):
     """Solve puzzle by assigning a random valid value to unsolved cells and removing candidates which result in errors.
+    Returns a solved Puzzle object or None if puzzle still unsolved.
 
     :param puzzle: Puzzle object
     :param recursed_into: bool identifying this as a top level or recursive call
+    :return: solved Puzzle object or None if puzzle still unsolved
     """
     # guess_and_check() is always called after basic_solve, which always exits with puzzle.changed == False
     puzzle.changed = True
