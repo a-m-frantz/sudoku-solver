@@ -1,12 +1,30 @@
 import time
-import init
 import puzzle as pzl
 import algorithm as alg
 
 
+def read_file():
+    while True:
+        try:
+            # infile_name = input('Puzzle file name: ')
+            infile_name = 'hard3.txt'
+            infile = open(infile_name)
+            file_contents = infile.read()
+            puzzle_list = [char for char in file_contents if char.isdigit or char == '.']
+            puzzle_string = ''.join(puzzle_list)
+            if len(puzzle_string) == 81:
+                break
+        except OSError:
+            print('File not found. Please try again.')
+        else:
+            print('File in incorrect format.\nSee README for accepted puzzle formats.')
+    print('Input file: ' + infile_name, end='\n\n')
+    puzzle = pzl.Puzzle(puzzle_string)
+    return puzzle
+
+
 def main():
-    raw_puzzle = init.read_file()
-    puzzle = pzl.Puzzle(raw_puzzle)
+    puzzle = read_file()
 
     print('Starting puzzle:')
     puzzle.print_puzzle()

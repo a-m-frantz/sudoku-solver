@@ -97,19 +97,20 @@ class Puzzle:
     def __init__(self, raw_puzzle):
         """Initialize the puzzle.
 
-        :param raw_puzzle: 81 char string with '.' for unknown cells and 1-9 for clues. First 9 chars are first row, etc
+        :param raw_puzzle: 81 char string with '.' or '0' for unknown cells and 1-9 for clues.
+                           First 9 chars are first row, second 9 chars are second row, etc.
         """
         self.cell_array = [[] for _ in range(9)]
         pos = 0
         num_clues = 0
         for row, col in itertools.product(range(9), repeat=2):
-            if raw_puzzle[pos] != '.':
+            if raw_puzzle[pos] != '.' and raw_puzzle[pos] != '0':
                 num_clues += 1
                 self.cell_array[row].append(Cell(row, col, int(raw_puzzle[pos])))
             else:
                 self.cell_array[row].append(Cell(row, col))
             pos += 1
-        print('Number of clues: {}'.format(num_clues), end='\n\n')
+        # print('Number of clues: {}'.format(num_clues), end='\n\n')
 
     def __deepcopy__(self, memodict={}):
         """Make a deepcopy of a puzzle."""
