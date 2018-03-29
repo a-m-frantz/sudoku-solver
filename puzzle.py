@@ -1,13 +1,6 @@
 import itertools
 import copy
 
-BANDS = [[0, 1, 2], [3, 4, 5], [6, 7, 8]]
-
-ROW_ITER = [[(row, col) for col in range(9)] for row in range(9)]
-COL_ITER = [[(row, col) for row in range(9)] for col in range(9)]
-BLOCK_ITER = [[(row, col) for row in rows for col in cols] for rows in BANDS for cols in BANDS]
-# TODO find a way to avoid these global variables
-
 
 class SolutionError(Exception):
     """Exception thrown when a puzzle board becomes invalid."""
@@ -159,7 +152,11 @@ class Puzzle:
 
     def check(self):
         """Return True if there are no mistakes in the puzzle, False if there are."""
-        for unit_type in [ROW_ITER, COL_ITER, BLOCK_ITER]:
+        bands = [[0, 1, 2], [3, 4, 5], [6, 7, 8]]
+        row_iter = [[(row, col) for col in range(9)] for row in range(9)]
+        col_iter = [[(row, col) for row in range(9)] for col in range(9)]
+        block_iter = [[(row, col) for row in rows for col in cols] for rows in bands for cols in bands]
+        for unit_type in [row_iter, col_iter, block_iter]:
             for unit in unit_type:
                 solved_vals = []
                 for row, col in unit:
