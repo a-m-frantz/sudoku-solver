@@ -1,9 +1,10 @@
-import sudokuSolver
-import time
-import statistics
-from contextlib import contextmanager
-import sys
 import os
+import statistics
+import sys
+import time
+from contextlib import contextmanager
+
+import sudokuSolver
 
 
 @contextmanager
@@ -18,7 +19,7 @@ def suppress_stdout():
 
 
 def test():
-    num_tests = 100
+    num_tests = 20
     print('####################################')
     print('# Timing sudokuSolver over {} runs #'.format(num_tests))
     print('####################################', end='\n\n')

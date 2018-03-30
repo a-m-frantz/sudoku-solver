@@ -1,5 +1,5 @@
-import itertools
 import copy
+import itertools
 
 
 class SolutionError(Exception):

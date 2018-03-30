@@ -1,6 +1,7 @@
 import time
-import puzzle as pzl
+
 import algorithm as alg
+import puzzle as pzl
 
 
 def read_file():
