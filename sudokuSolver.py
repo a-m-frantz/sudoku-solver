@@ -1,3 +1,4 @@
+import sys
 import time
 
 import algorithm as alg
@@ -5,20 +6,29 @@ import puzzle as pzl
 
 
 def read_file():
+    """Get puzzle file from user, then validate it and create a Puzzle object."""
+    print('Type "exit" at the prompt to quit.')
     while True:
         try:
-            # infile_name = input('Puzzle file name: ')
-            infile_name = 'hard3.txt'
+            infile_name = input('Puzzle file name: ')
+            # infile_name = 'hard3.txt'
+            if infile_name == 'exit':
+                sys.exit('User quit program.')
             infile = open(infile_name)
             file_contents = infile.read()
             puzzle_list = [char for char in file_contents if char.isdigit or char == '.']
             puzzle_string = ''.join(puzzle_list)
             if len(puzzle_string) == 81:
-                break
+                clues = [char for char in puzzle_string if char != '.' and char != '0']
+                num_clues = len(clues)
+                if num_clues >= 17:
+                    break
+                print('{} is an unsolvable puzzle. It has {} clues.\n'
+                      'There are no valid sudoku puzzles with fewer than 17 clues.'.format(infile_name, num_clues))
+            else:
+                print('File in incorrect format.\nSee README for accepted puzzle formats.')
         except OSError:
             print('File not found. Please try again.')
-        else:
-            print('File in incorrect format.\nSee README for accepted puzzle formats.')
     print('Input file: ' + infile_name, end='\n\n')
     puzzle = pzl.Puzzle(puzzle_string)
     return puzzle
