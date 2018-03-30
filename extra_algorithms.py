@@ -1,79 +1,6 @@
-import copy
 import itertools
 
-from puzzle import SolutionError
-
-BANDS = [[0, 1, 2], [3, 4, 5], [6, 7, 8]]
-
-ROW_ITER = [[(row, col) for col in range(9)] for row in range(9)]
-COL_ITER = [[(row, col) for row in range(9)] for col in range(9)]
-BLOCK_ITER = [[(row, col) for row in rows for col in cols] for rows in BANDS for cols in BANDS]
-
-
-def update_peers(puzzle, row, col, val, unit_type=''):
-    """Remove a value from the candidate lists of a cell's peers.
-
-    If removing a candidate solves a cell, recursively update that cell's peers.
-
-    :param puzzle: Puzzle object
-    :param row: int identifying the row the cell is in
-    :param col: int identifying the column the cell is in
-    :param val: The value that needs to be removed from the cell's peers
-    :param unit_type: Optional str argument to only update one of the cell's units. Either 'row', 'column', or 'block'
-    """
-    # Rows #
-    if unit_type == '' or unit_type == 'row':
-        for pos in ROW_ITER[row]:
-            if pos[1] != col:
-                cell = puzzle.cell_array[pos[0]][pos[1]]
-                previously_solved = cell.is_solved()
-                cell.remove_candidate(val)
-                if cell.is_solved() and not previously_solved:
-                    update_peers(puzzle, pos[0], pos[1], cell.last_candidate())
-
-    # Columns #
-    if unit_type == '' or unit_type == 'column':
-        for pos in COL_ITER[col]:
-            if pos[0] != row:
-                cell = puzzle.cell_array[pos[0]][pos[1]]
-                previously_solved = cell.is_solved()
-                cell.remove_candidate(val)
-                if cell.is_solved() and not previously_solved:
-                    update_peers(puzzle, pos[0], pos[1], cell.last_candidate())
-
-    # Blocks #
-    if unit_type == '' or unit_type == 'block':
-        rows, cols = [], []
-        for horizontal_band in BANDS:
-            if row in horizontal_band:
-                rows = horizontal_band[:]
-                break
-        for vertical_band in BANDS:
-            if col in vertical_band:
-                cols = vertical_band[:]
-                break
-        # 4 of the cells in the block were updated with the row and column. Don't update again
-        rows.remove(row)
-        cols.remove(col)
-        for x_pos, y_pos in itertools.product(rows, cols):
-            cell = puzzle.cell_array[x_pos][y_pos]
-            previously_solved = cell.is_solved()
-            cell.remove_candidate(val)
-            if cell.is_solved() and not previously_solved:
-                update_peers(puzzle, x_pos, y_pos, cell.last_candidate())
-
-
-def update_clue_peers(puzzle):
-    """Update the candidate lists of the clues' peers.  Clues are cells whose values are known when the puzzle starts.
-
-    Only call after puzzle initialization.
-
-    :param puzzle: Puzzle object
-    """
-    for row, col in itertools.product(range(9), range(9)):
-        if puzzle.cell_array[row][col].is_solved():
-            val = puzzle.cell_array[row][col].last_candidate()
-            update_peers(puzzle, row, col, val)
+import algorithms as alg
 
 
 def find_preemptive_set(puzzle, n):
@@ -86,7 +13,7 @@ def find_preemptive_set(puzzle, n):
     :param puzzle: Puzzle object
     :param n: size of preemptive sets to be found
     """
-    for unit_type_id, unit_type in enumerate([ROW_ITER, COL_ITER, BLOCK_ITER]):
+    for unit_type_id, unit_type in enumerate([alg.ROW_ITER, alg.COL_ITER, alg.BLOCK_ITER]):
         for unit in unit_type:
             for preemptive_set in itertools.combinations(range(1, 9+1), n):
                 cells = []
@@ -107,7 +34,7 @@ def find_preemptive_set(puzzle, n):
                     for cell in cells:
                         cell.dont_remove = preemptive_set
                     for cell, val in itertools.product(cells, preemptive_set):
-                        update_peers(puzzle, cell.POS[0], cell.POS[1], val, unit_with_pair)
+                        alg.update_peers(puzzle, cell.POS[0], cell.POS[1], val, unit_with_pair)
                     for cell in cells:
                         cell.dont_remove = set()
 
@@ -122,7 +49,7 @@ def find_hidden_sets(puzzle, n):
     :param puzzle: Puzzle object
     :param n: size of hidden sets to be found
     """
-    for unit_type in [ROW_ITER, COL_ITER, BLOCK_ITER]:
+    for unit_type in [alg.ROW_ITER, alg.COL_ITER, alg.BLOCK_ITER]:
         for unit in unit_type:
             for val_tup in itertools.combinations(range(1, 9+1), n):
                 val_set = set(val_tup)
@@ -160,13 +87,13 @@ def find_hidden_sets(puzzle, n):
                     for cell in cells:
                         combined_candidates = combined_candidates | cell.candidates
 
-                    # Check that found trip is hidden, not naked
+                    # Check that found set is hidden, not naked
                     if len(combined_candidates - val_set) == 0:
                         continue
                     for cell in cells:
                         cell.set_cell(val_set)
                         if cell.is_solved():
-                            update_peers(puzzle, cell.POS[0], cell.POS[1], cell.last_candidate())
+                            alg.update_peers(puzzle, cell.POS[0], cell.POS[1], cell.last_candidate())
 
 
 def _row_sub_unit_exclusions(puzzle):
@@ -175,7 +102,7 @@ def _row_sub_unit_exclusions(puzzle):
         val_solved = False
         val_in_sub_units = []
         # A sub unit is columns [0-2], [3-5], or [6-8] of a row
-        for sub_unit_index, sub_unit in enumerate(BANDS):
+        for sub_unit_index, sub_unit in enumerate(alg.BANDS):
             for col in sub_unit:
                 cell = puzzle.cell_array[row][col]
                 if val in cell.candidates:
@@ -195,18 +122,18 @@ def _row_sub_unit_exclusions(puzzle):
         sub_unit_num = val_in_sub_units[0]
         rows, cols = [], []
         # Find which horizontal band 'row' is in (horizontal in regards to whole puzzle)
-        for horizontal_band in BANDS:
+        for horizontal_band in alg.BANDS:
             if row in horizontal_band:
                 rows = horizontal_band[:]
                 break
         rows.remove(row)
-        cols = BANDS[sub_unit_num]
+        cols = alg.BANDS[sub_unit_num]
         for row_num, col_num in itertools.product(rows, cols):
             cell = puzzle.cell_array[row_num][col_num]
             previously_solved = cell.is_solved()
             cell.remove_candidate(val)
             if cell.is_solved() and not previously_solved:
-                update_peers(puzzle, row_num, col_num, cell.last_candidate())
+                alg.update_peers(puzzle, row_num, col_num, cell.last_candidate())
 
 
 def _col_sub_unit_exclusions(puzzle):
@@ -215,7 +142,7 @@ def _col_sub_unit_exclusions(puzzle):
         val_solved = False
         val_in_sub_units = []
         # A sub unit is rows [0-2], [3-5], or [6-8] of a column
-        for sub_unit_index, sub_unit in enumerate(BANDS):
+        for sub_unit_index, sub_unit in enumerate(alg.BANDS):
             for row in sub_unit:
                 cell = puzzle.cell_array[row][col]
                 if val in cell.candidates:
@@ -235,23 +162,23 @@ def _col_sub_unit_exclusions(puzzle):
         sub_unit_num = val_in_sub_units[0]
         rows, cols = [], []
         # Find which vertical band 'col' is in (vertical in regards to whole puzzle)
-        for vertical_band in BANDS:
+        for vertical_band in alg.BANDS:
             if col in vertical_band:
                 cols = vertical_band[:]
                 break
         cols.remove(col)
-        rows = BANDS[sub_unit_num]
+        rows = alg.BANDS[sub_unit_num]
         for row_num, col_num in itertools.product(rows, cols):
             cell = puzzle.cell_array[row_num][col_num]
             previously_solved = cell.is_solved()
             cell.remove_candidate(val)
             if cell.is_solved() and not previously_solved:
-                update_peers(puzzle, row_num, col_num, cell.last_candidate())
+                alg.update_peers(puzzle, row_num, col_num, cell.last_candidate())
 
 
 def _horizontal_block_sub_unit_exclusions(puzzle):
     """Private find_sub_unit_exclusions() function."""
-    for block_rows, block_cols, val in itertools.product(BANDS, BANDS, range(1, 9+1)):
+    for block_rows, block_cols, val in itertools.product(alg.BANDS, alg.BANDS, range(1, 9+1)):
         val_solved = False
         val_in_rows = []
         for row_index, row in enumerate(block_rows):
@@ -274,18 +201,18 @@ def _horizontal_block_sub_unit_exclusions(puzzle):
         row_to_update = block_rows[row_index]
         cols = []
         [[cols.append(col) for col in vertical_band
-          if vertical_band != block_cols] for vertical_band in BANDS]
+          if vertical_band != block_cols] for vertical_band in alg.BANDS]
         for col in cols:
             cell = puzzle.cell_array[row_to_update][col]
             previously_solved = cell.is_solved()
             cell.remove_candidate(val)
             if cell.is_solved() and not previously_solved:
-                update_peers(puzzle, row_to_update, col, cell.last_candidate())
+                alg.update_peers(puzzle, row_to_update, col, cell.last_candidate())
 
 
 def _vertical_block_sub_unit_exclusions(puzzle):
     """Private find_sub_unit_exclusions() function."""
-    for block_rows, block_cols, val in itertools.product(BANDS, BANDS, range(1, 9+1)):
+    for block_rows, block_cols, val in itertools.product(alg.BANDS, alg.BANDS, range(1, 9+1)):
         val_solved = False
         val_in_cols = []
         for col_index, col in enumerate(block_cols):
@@ -308,13 +235,13 @@ def _vertical_block_sub_unit_exclusions(puzzle):
         col_to_update = block_cols[col_index]
         rows = []
         [[rows.append(row) for row in horizontal_band
-          if horizontal_band != block_rows] for horizontal_band in BANDS]
+          if horizontal_band != block_rows] for horizontal_band in alg.BANDS]
         for row in rows:
             cell = puzzle.cell_array[row][col_to_update]
             previously_solved = cell.is_solved()
             cell.remove_candidate(val)
             if cell.is_solved() and not previously_solved:
-                update_peers(puzzle, row, col_to_update, cell.last_candidate())
+                alg.update_peers(puzzle, row, col_to_update, cell.last_candidate())
 
 
 def find_sub_unit_exclusions(puzzle):
@@ -327,90 +254,3 @@ def find_sub_unit_exclusions(puzzle):
     _col_sub_unit_exclusions(puzzle)
     _horizontal_block_sub_unit_exclusions(puzzle)
     _vertical_block_sub_unit_exclusions(puzzle)
-
-
-def basic_solve(puzzle):
-    """Solve puzzle using non-recursive techniques.
-
-    :param puzzle: Puzzle object
-    """
-    while puzzle.changed:
-        puzzle.changed = False
-
-        find_hidden_sets(puzzle, 1)
-        puzzle.check()
-        find_preemptive_set(puzzle, 2)
-        puzzle.check()
-        find_hidden_sets(puzzle, 2)
-        puzzle.check()
-        find_preemptive_set(puzzle, 3)
-        puzzle.check()
-        find_hidden_sets(puzzle, 3)
-        puzzle.check()
-        find_preemptive_set(puzzle, 4)
-        puzzle.check()
-        find_hidden_sets(puzzle, 4)
-        puzzle.check()
-        find_sub_unit_exclusions(puzzle)
-        puzzle.check()
-
-
-def guess_and_check(puzzle, recursed_into=False):
-    """Solve puzzle by assigning a random valid value to unsolved cells and removing candidates which result in errors.
-    Returns a solved Puzzle object or None if puzzle still unsolved.
-
-    :param puzzle: Puzzle object
-    :param recursed_into: bool identifying this as a top level or recursive call
-    :return: solved Puzzle object or None if puzzle still unsolved
-    """
-    # guess_and_check() is always called after basic_solve, which always exits with puzzle.changed == False
-    puzzle.changed = True
-    while puzzle.changed:
-        puzzle.changed = False
-        checked_cells = set()
-        largest_set_length = 1
-        largest_set_length_increased = True
-        for min_set_length in range(2, 9+1):
-            if not largest_set_length_increased and min_set_length > largest_set_length:
-                break
-            largest_set_length_increased = False
-            for row in range(9):
-                for col in range(9):
-                    cell = puzzle.cell_array[row][col]
-                    if len(cell.candidates) > largest_set_length:
-                        largest_set_length = len(cell.candidates)
-                        largest_set_length_increased = True
-                    if not cell.is_solved() and len(cell.candidates) <= min_set_length and cell not in checked_cells:
-                        checked_cells.add(cell)
-                        bad_vals = set()
-                        for val in cell.candidates:
-                            # if all checked values are bad except last one, last value must be good unless in recursion
-                            if len(cell.candidates - set(bad_vals)) == 1 and not recursed_into:
-                                break
-                            puzzle_copy = copy.deepcopy(puzzle)
-                            copied_cell = puzzle_copy.cell_array[row][col]
-                            copied_cell.set_cell({val})
-                            try:
-                                update_peers(puzzle_copy, row, col, val)
-                                basic_solve(puzzle_copy)
-                                try:
-                                    solved_puzzle = guess_and_check(puzzle_copy, recursed_into=True)
-                                    if solved_puzzle:
-                                        return solved_puzzle
-                                    else:
-                                        del solved_puzzle
-                                except SolutionError:
-                                    bad_vals.add(val)
-                            except SolutionError:
-                                bad_vals.add(val)
-                        if recursed_into and len(cell.candidates - set(bad_vals)) == 0:
-                            raise SolutionError()
-                        if (len(bad_vals)) > 0:
-                            for val in bad_vals:
-                                cell.remove_candidate(val)
-                            if cell.is_solved():
-                                update_peers(puzzle, cell.POS[0], cell.POS[1], cell.last_candidate())
-                            basic_solve(puzzle)
-                            if puzzle.solved:
-                                return puzzle
-    return None

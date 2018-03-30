@@ -4,11 +4,12 @@ import sys
 import time
 from contextlib import contextmanager
 
-import sudokuSolver
+import sudoku_solver
 
 
 @contextmanager
 def suppress_stdout():
+    """Suppress stdout."""
     with open(os.devnull, "w") as devnull:
         old_stdout = sys.stdout
         sys.stdout = devnull
@@ -18,17 +19,18 @@ def suppress_stdout():
             sys.stdout = old_stdout
 
 
-def test():
-    num_tests = 20
-    print('####################################')
-    print('# Timing sudokuSolver over {} runs #'.format(num_tests))
-    print('####################################', end='\n\n')
+def test_time():
+    """Time how long sudoku_solver takes to solve the same puzzle over multiple runs."""
+    num_tests = 100
+    print('#####################################')
+    print('# Timing sudoku_solver over {} runs #'.format(num_tests))
+    print('#####################################', end='\n\n')
     start_time = time.time()
     run_times = []
     with suppress_stdout():
         for _ in range(num_tests):
             t_start = time.time()
-            sudokuSolver.main()
+            sudoku_solver.main()
             t_end = time.time()
             run_times.append(t_end - t_start)
     end_time = time.time()
@@ -48,4 +50,4 @@ def test():
 
 
 if __name__ == '__main__':
-    test()
+    test_time()

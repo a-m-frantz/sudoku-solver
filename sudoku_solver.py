@@ -1,7 +1,7 @@
 import sys
 import time
 
-import algorithm as alg
+import algorithms as alg
 import puzzle as pzl
 
 
@@ -28,8 +28,8 @@ def read_file():
     print('Type "exit" at the prompt to quit.')
     while True:
         try:
-            infile_name = input('Puzzle file name: ')
-            # infile_name = 'hardestMultipleSolutions.txt'
+            # infile_name = input('Puzzle file name: ')
+            infile_name = 'hard3.txt'
             if infile_name == 'exit':
                 sys.exit('User quit program.')
             infile = open(infile_name)
@@ -55,12 +55,6 @@ def main():
     alg.update_clue_peers(puzzle)
     alg.basic_solve(puzzle)
     if not puzzle.solved:
-        print('Basic solving techniques weren\'t enough.\n'
-              'Have to guess and check for remaining unsolved cells.\nThe puzzle so far is:')
-        puzzle.print_puzzle()
-        t1 = time.time()
-        total_time = t1 - t0
-        print('Time it took to solve up to guessing and checking: {0:.4f}'.format(total_time), end='\n\n')
         puzzle = alg.guess_and_check(puzzle)
 
     t1 = time.time()
@@ -68,10 +62,11 @@ def main():
 
     if puzzle.solved:
         print('Solved puzzle:')
+        puzzle.print_puzzle()
+        print('Time to solve: {0:.4f}'.format(total_time))
     else:
-        print('Something went wrong!\nThis is an incorrect solution:')
-    puzzle.print_puzzle()
-    print('Time to solve: {0:.4f}'.format(total_time))
+        print('This puzzle doesn\'t have a solution!')
+        print('Time it took to realize this: {0:.4f}'.format(total_time))
 
 
 if __name__ == '__main__':
