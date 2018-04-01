@@ -7,7 +7,7 @@ import puzzle as pzl
 
 def parse_file(file_contents):
     """Validate that file has a puzzle with at least 17 clues and return the puzzle in string format if validated."""
-    puzzle_list = [char for char in file_contents if char.isdigit or char == '.']
+    puzzle_list = [char for char in file_contents if char.isdigit() or char == '.']
     puzzle_string = ''.join(puzzle_list)
     if len(puzzle_string) == 81:
         clues = [char for char in puzzle_string if char != '.' and char != '0']
