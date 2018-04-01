@@ -110,8 +110,166 @@ def find_hidden_singles(puzzle):
                     update_peers(puzzle, single.POS[0], single.POS[1], single.last_candidate())
 
 
+def _row_sub_unit_exclusions(puzzle):
+    """Private find_sub_unit_exclusions() function."""
+    for row, val in itertools.product(range(9), range(1, 9+1)):
+        val_solved = False
+        val_in_sub_units = []
+        # A sub unit is columns [0-2], [3-5], or [6-8] of a row
+        for sub_unit_index, sub_unit in enumerate(BANDS):
+            for col in sub_unit:
+                cell = puzzle.cell_array[row][col]
+                if val in cell.candidates:
+                    # if value has been solved, break all loops until the outer val loop
+                    if cell.is_solved():
+                        val_solved = True
+                        break
+                    else:
+                        # value is in this sub unit. Don't care how many times it shows up, so don't check the rest.
+                        val_in_sub_units.append(sub_unit_index)
+                        break
+            if val_solved:
+                break
+        # If value is solved or appears in more than one sub unit, go to next value
+        if val_solved or len(val_in_sub_units) != 1:
+            continue
+        sub_unit_num = val_in_sub_units[0]
+        rows, cols = [], []
+        # Find which horizontal band 'row' is in (horizontal in regards to whole puzzle)
+        for horizontal_band in BANDS:
+            if row in horizontal_band:
+                rows = horizontal_band[:]
+                break
+        rows.remove(row)
+        cols = BANDS[sub_unit_num]
+        for row_num, col_num in itertools.product(rows, cols):
+            cell = puzzle.cell_array[row_num][col_num]
+            previously_solved = cell.is_solved()
+            cell.remove_candidate(val)
+            if cell.is_solved() and not previously_solved:
+                update_peers(puzzle, row_num, col_num, cell.last_candidate())
+
+
+def _col_sub_unit_exclusions(puzzle):
+    """Private find_sub_unit_exclusions() function."""
+    for col, val in itertools.product(range(9), range(1, 9+1)):
+        val_solved = False
+        val_in_sub_units = []
+        # A sub unit is rows [0-2], [3-5], or [6-8] of a column
+        for sub_unit_index, sub_unit in enumerate(BANDS):
+            for row in sub_unit:
+                cell = puzzle.cell_array[row][col]
+                if val in cell.candidates:
+                    # if value has been solved, break all loops until the outer val loop
+                    if cell.is_solved():
+                        val_solved = True
+                        break
+                    else:
+                        # value is in this sub unit. Don't care how many times it shows up, so don't check the rest.
+                        val_in_sub_units.append(sub_unit_index)
+                        break
+            if val_solved:
+                break
+        # If value is solved or appears in more than one sub unit, go to next value
+        if val_solved or len(val_in_sub_units) != 1:
+            continue
+        sub_unit_num = val_in_sub_units[0]
+        rows, cols = [], []
+        # Find which vertical band 'col' is in (vertical in regards to whole puzzle)
+        for vertical_band in BANDS:
+            if col in vertical_band:
+                cols = vertical_band[:]
+                break
+        cols.remove(col)
+        rows = BANDS[sub_unit_num]
+        for row_num, col_num in itertools.product(rows, cols):
+            cell = puzzle.cell_array[row_num][col_num]
+            previously_solved = cell.is_solved()
+            cell.remove_candidate(val)
+            if cell.is_solved() and not previously_solved:
+                update_peers(puzzle, row_num, col_num, cell.last_candidate())
+
+
+def _horizontal_block_sub_unit_exclusions(puzzle):
+    """Private find_sub_unit_exclusions() function."""
+    for block_rows, block_cols, val in itertools.product(BANDS, BANDS, range(1, 9+1)):
+        val_solved = False
+        val_in_rows = []
+        for row in block_rows:
+            for col in block_cols:
+                cell = puzzle.cell_array[row][col]
+                if val in cell.candidates:
+                    if cell.is_solved():
+                        val_solved = True
+                        break
+                    else:
+                        # value is in this row. Don't care how many times it shows up, so don't check the rest
+                        val_in_rows.append(row)
+                        break
+            if val_solved:
+                break
+        # If value is solved or appears in more than one row, go to next val
+        if val_solved or len(val_in_rows) != 1:
+            continue
+        row_to_update = val_in_rows[0]
+        cols = []
+        [[cols.append(col) for col in vertical_band
+          if vertical_band != block_cols] for vertical_band in BANDS]
+        for col in cols:
+            cell = puzzle.cell_array[row_to_update][col]
+            previously_solved = cell.is_solved()
+            cell.remove_candidate(val)
+            if cell.is_solved() and not previously_solved:
+                update_peers(puzzle, row_to_update, col, cell.last_candidate())
+
+
+def _vertical_block_sub_unit_exclusions(puzzle):
+    """Private find_sub_unit_exclusions() function."""
+    for block_rows, block_cols, val in itertools.product(BANDS, BANDS, range(1, 9+1)):
+        val_solved = False
+        val_in_cols = []
+        for col in block_cols:
+            for row in block_rows:
+                cell = puzzle.cell_array[row][col]
+                if val in cell.candidates:
+                    if cell.is_solved():
+                        val_solved = True
+                        break
+                    else:
+                        # value is in this col. Don't care how many times it shows up, so don't check the rest
+                        val_in_cols.append(col)
+                        break
+            if val_solved:
+                break
+        # If value is solved or appears in more than one row, go to next val
+        if val_solved or len(val_in_cols) != 1:
+            continue
+        col_to_update = val_in_cols[0]
+        rows = []
+        [[rows.append(row) for row in horizontal_band
+          if horizontal_band != block_rows] for horizontal_band in BANDS]
+        for row in rows:
+            cell = puzzle.cell_array[row][col_to_update]
+            previously_solved = cell.is_solved()
+            cell.remove_candidate(val)
+            if cell.is_solved() and not previously_solved:
+                update_peers(puzzle, row, col_to_update, cell.last_candidate())
+
+
+def find_sub_unit_exclusions(puzzle):
+    """Search each unit for values that only appear in one sub unit
+    and remove them from the rest of the overlapping unit.
+
+    :param puzzle: Puzzle object
+    """
+    _row_sub_unit_exclusions(puzzle)
+    _col_sub_unit_exclusions(puzzle)
+    _horizontal_block_sub_unit_exclusions(puzzle)
+    _vertical_block_sub_unit_exclusions(puzzle)
+
+
 def basic_solve(puzzle):
-    """Solve puzzle using a non-recursive technique, finding hidden singles.
+    """Solve puzzle using non-recursive techniques.
 
     :param puzzle: Puzzle object
     """
@@ -119,6 +277,8 @@ def basic_solve(puzzle):
         puzzle.changed = False
 
         find_hidden_singles(puzzle)
+        puzzle.check()
+        find_sub_unit_exclusions(puzzle)
         puzzle.check()
 
 
