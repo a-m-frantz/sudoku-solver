@@ -28,8 +28,7 @@ def read_file():
     print('Type "exit" at the prompt to quit.')
     while True:
         try:
-            # infile_name = input('Puzzle file name: ')
-            infile_name = 'hard3.txt'
+            infile_name = input('Puzzle file name: ')
             if infile_name == 'exit':
                 sys.exit('User quit program.')
             infile = open(infile_name)
