@@ -136,7 +136,7 @@ def guess_and_check(puzzle, recursed_into=False):
         checked_cells = set()
         largest_set_length = 1
         largest_set_length_increased = True
-        for min_set_length in range(2, 9):
+        for min_set_length in range(2, 9):  # TODO comment what set_length variables are doing
             if not largest_set_length_increased and min_set_length > largest_set_length:
                 break
             largest_set_length_increased = False
@@ -150,7 +150,7 @@ def guess_and_check(puzzle, recursed_into=False):
                     bad_vals = set()
                     for val in cell.candidates:
                         # if all checked values are bad except last one, last value must be good unless in recursion
-                        if len(cell.candidates - set(bad_vals)) == 1 and not recursed_into:
+                        if len(cell.candidates - bad_vals) == 1 and not recursed_into:
                             break
                         puzzle_copy = copy.deepcopy(puzzle)
                         copied_cell = puzzle_copy.cell_array[row][col]
@@ -158,18 +158,13 @@ def guess_and_check(puzzle, recursed_into=False):
                         try:
                             update_peers(puzzle_copy, row, col, val)
                             basic_solve(puzzle_copy)
-                            try:
-                                solved_puzzle = guess_and_check(puzzle_copy, recursed_into=True)
-                                if solved_puzzle:
-                                    return solved_puzzle
-                                else:
-                                    del solved_puzzle
-                            except SolutionError:
-                                bad_vals.add(val)
+                            solved_puzzle = guess_and_check(puzzle_copy, recursed_into=True)
+                            if solved_puzzle:
+                                return solved_puzzle
+                            else:
+                                del solved_puzzle
                         except SolutionError:
                             bad_vals.add(val)
-                    if recursed_into and len(cell.candidates - set(bad_vals)) == 0:
-                        raise SolutionError()
                     if (len(bad_vals)) > 0:
                         for val in bad_vals:
                             cell.remove_candidate(val)
