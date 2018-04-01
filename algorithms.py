@@ -124,7 +124,6 @@ def basic_solve(puzzle):
 
 def guess_and_check(puzzle, recursed_into=False):
     """Solve puzzle by assigning a random valid value to unsolved cells and removing candidates which result in errors.
-    Returns a solved Puzzle object or None if puzzle still unsolved.
 
     :param puzzle: Puzzle object
     :param recursed_into: bool identifying this as a top level or recursive call
