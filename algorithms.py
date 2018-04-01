@@ -107,8 +107,7 @@ def find_hidden_singles(puzzle):
                 if potential_single:
                     single = potential_single
                     single.set_cell({val})
-                    if single.is_solved():
-                        update_peers(puzzle, single.POS[0], single.POS[1], single.last_candidate())
+                    update_peers(puzzle, single.POS[0], single.POS[1], single.last_candidate())
 
 
 def basic_solve(puzzle):
