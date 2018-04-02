@@ -268,21 +268,23 @@ def find_sub_unit_exclusions(puzzle):
     _vertical_block_sub_unit_exclusions(puzzle)
 
 
-def basic_solve(puzzle):
+def basic_solve(puzzle, expansive=True):
     """Solve puzzle using non-recursive techniques.
 
     :param puzzle: Puzzle object
+    :param expansive: bool
     """
     while puzzle.changed:
         puzzle.changed = False
 
         find_hidden_singles(puzzle)
         puzzle.check()
-        find_sub_unit_exclusions(puzzle)
-        puzzle.check()
+        if expansive:
+            find_sub_unit_exclusions(puzzle)
+            puzzle.check()
 
 
-def guess_and_check(puzzle, recursed_into=False):
+def guess_and_check(puzzle, level=0):
     """Solve puzzle by assigning a random valid value to unsolved cells and removing candidates which result in errors.
 
     :param puzzle: Puzzle object
@@ -310,15 +312,18 @@ def guess_and_check(puzzle, recursed_into=False):
                     bad_vals = set()
                     for val in cell.candidates:
                         # if all checked values are bad except last one, last value must be good unless in recursion
-                        if len(cell.candidates - bad_vals) == 1 and not recursed_into:
+                        if len(cell.candidates - bad_vals) == 1 and level == 0:
                             break
                         puzzle_copy = copy.deepcopy(puzzle)
                         copied_cell = puzzle_copy.cell_array[row][col]
                         copied_cell.set_cell({val})
                         try:
                             update_peers(puzzle_copy, row, col, val)
-                            basic_solve(puzzle_copy)
-                            solved_puzzle = guess_and_check(puzzle_copy, recursed_into=True)
+                            if level >= 10:
+                                basic_solve(puzzle_copy, expansive=False)
+                            else:
+                                basic_solve(puzzle_copy)
+                            solved_puzzle = guess_and_check(puzzle_copy, level=level+1)
                             if solved_puzzle:
                                 return solved_puzzle
                             else:
@@ -330,7 +335,10 @@ def guess_and_check(puzzle, recursed_into=False):
                             cell.remove_candidate(val)
                         if cell.is_solved():
                             update_peers(puzzle, cell.POS[0], cell.POS[1], cell.last_candidate())
-                        basic_solve(puzzle)
+                        if level >= 10:
+                            basic_solve(puzzle, expansive=False)
+                        else:
+                            basic_solve(puzzle)
                         if puzzle.solved:
                             return puzzle
     return None
