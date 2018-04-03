@@ -23,12 +23,16 @@ def parse_file(file_contents):
         return None
 
 
-def read_file():
+def read_file(file=None):
     """Get puzzle file from user, validate it, and return a Puzzle object."""
-    print('Type "exit" at the prompt to quit.')
     while True:
         try:
-            infile_name = input('Puzzle file name: ')
+            if not file:
+                print('Type "exit" at the prompt to quit.')
+                infile_name = input('Puzzle file name: ')
+            else:
+                infile_name = file
+            # infile_name = 'sample_puzzles/hard3.txt'
             if infile_name == 'exit':
                 sys.exit('User quit program.')
             infile = open(infile_name)
@@ -43,8 +47,8 @@ def read_file():
     return puzzle
 
 
-def main():
-    puzzle = read_file()
+def main(infile=None):
+    puzzle = read_file(infile)
 
     print('Starting puzzle:')
     puzzle.print_puzzle()
@@ -69,4 +73,10 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-i', '--input', help='File with sudoku puzzle')
+    args = parser.parse_args()
+    # main(args.input)
+    main('sample_puzzles/test6.txt')

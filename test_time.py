@@ -19,18 +19,18 @@ def suppress_stdout():
             sys.stdout = old_stdout
 
 
-def test_time():
+def test_time(file=None):
     """Time how long sudoku_solver takes to solve the same puzzle over multiple runs."""
     num_tests = 100
-    print('#####################################')
+    print('######################################')
     print('# Timing sudoku_solver over {} runs #'.format(num_tests))
-    print('#####################################', end='\n\n')
+    print('######################################', end='\n\n')
     start_time = time.time()
     run_times = []
     with suppress_stdout():
         for _ in range(num_tests):
             t_start = time.time()
-            sudoku_solver.main()
+            sudoku_solver.main(infile=file)
             t_end = time.time()
             run_times.append(t_end - t_start)
     end_time = time.time()
@@ -50,4 +50,12 @@ def test_time():
 
 
 if __name__ == '__main__':
-    test_time()
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-i', '--input', help='File with sudoku puzzle')
+    parser.add_argument('-n', '--num-tests', help='Number of times to run solver')
+    parser.add_argument('-m', '--multiple-puzzles', help='Whether input file has multiple tests')
+    args = parser.parse_args()
+    # test_time(file=args.input)
+    test_time('sample_puzzles/test6.txt')
