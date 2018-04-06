@@ -19,7 +19,7 @@ def suppress_stdout():
 
 
 def main(file, num_tests):
-    """Time how long sudoku_solver takes to solve the same puzzle over multiple runs."""
+    """Time how long sudoku_solver takes to solve a puzzle."""
     print('Timing {} over {} run(s)...'.format(file, num_tests))
     start_time = time.time()
     run_times = []
