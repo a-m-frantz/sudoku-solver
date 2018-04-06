@@ -1,7 +1,22 @@
+import os
 import statistics
+import sys
 import time
+from contextlib import contextmanager
 
 import sudoku_solver
+
+
+@contextmanager
+def suppress_stdout():
+    """Suppress stdout."""
+    with open(os.devnull, "w") as devnull:
+        old_stdout = sys.stdout
+        sys.stdout = devnull
+        try:
+            yield
+        finally:
+            sys.stdout = old_stdout
 
 
 def main(file, num_tests):
@@ -11,7 +26,7 @@ def main(file, num_tests):
     run_times = []
     for _ in range(num_tests):
         t_start = time.time()
-        with sudoku_solver.suppress_stdout():
+        with suppress_stdout():
             sudoku_solver.main(file)
         t_end = time.time()
         run_times.append(t_end - t_start)
@@ -36,7 +51,8 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument('input', nargs='+', help='File(s) with sudoku puzzle')
-    parser.add_argument('-n', '--num-tests', type=int, default=20, help='Number of times to run solver')
+    parser.add_argument('-n', '--num-tests', type=int, default=20, help='Number of times to run solver. '
+                                                                        'Must be greater than 1')
     arguments = parser.parse_args()
     if arguments.num_tests < 2:
         parser.error('num-tests must be greater than 1')
