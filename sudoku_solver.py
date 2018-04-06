@@ -1,8 +1,22 @@
+import os
 import sys
 import time
+from contextlib import contextmanager
 
 import algorithms as alg
 import puzzle as pzl
+
+
+@contextmanager
+def suppress_stdout():
+    """Suppress stdout."""
+    with open(os.devnull, "w") as devnull:
+        old_stdout = sys.stdout
+        sys.stdout = devnull
+        try:
+            yield
+        finally:
+            sys.stdout = old_stdout
 
 
 def parse_file(file_contents):
@@ -32,6 +46,7 @@ def read_file(file=None):
                 infile_name = input('Puzzle file name: ')
             else:
                 infile_name = file
+                file = None
             # infile_name = 'sample_puzzles/hard3.txt'
             if infile_name == 'exit':
                 sys.exit('User quit program.')
@@ -77,6 +92,10 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-i', '--input', help='File with sudoku puzzle')
-    args = parser.parse_args()
-    # main(args.input)
-    main('sample_puzzles/test6.txt')
+    parser.add_argument('-q', '--quiet', action='store_true', help='Run without printing to stdout')
+    arguments = parser.parse_args()
+    if arguments.quiet:
+        with suppress_stdout():
+            main(arguments)
+    else:
+        main(arguments.input)
