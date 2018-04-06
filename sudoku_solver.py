@@ -23,50 +23,73 @@ def parse_file(file_contents):
         return None
 
 
-def read_file():
+def read_file(file=None):
     """Get puzzle file from user, validate it, and return a Puzzle object."""
-    print('Type "exit" at the prompt to quit.')
     while True:
         try:
-            infile_name = input('Puzzle file name: ')
-            if infile_name == 'exit':
+            if not file:
+                print('Type "exit" at the prompt to quit.')
+                file_name = input('Puzzle file name: ')
+            else:
+                file_name = file
+                file = None
+            if file_name == 'exit':
                 sys.exit('User quit program.')
-            infile = open(infile_name)
+            infile = open(file_name)
             file_contents = infile.read()
             puzzle_string = parse_file(file_contents)
             if puzzle_string:
                 break
         except OSError:
-            print('File not found. Please try again.')
-    print('Input file: ' + infile_name, end='\n\n')
+            print('File {} not found. Please try again.'.format(file_name))
     puzzle = pzl.Puzzle(puzzle_string)
-    return puzzle
+    return puzzle, file_name
 
 
-def main():
-    puzzle = read_file()
+def main(infile=None, validate=False):
+    puzzle, file_name = read_file(infile)
 
-    print('Starting puzzle:')
-    puzzle.print_puzzle()
-    print('Solving...', end='\n\n')
+    if not validate:
+        print('Starting puzzle:')
+        puzzle.print_puzzle()
+        print('Solving...', end='\n\n')
 
     t0 = time.time()
-    alg.update_clue_peers(puzzle)
-    alg.basic_solve(puzzle)
-    if not puzzle.solved:
-        puzzle = alg.guess_and_check(puzzle)
+    try:
+        alg.update_clue_peers(puzzle)
+        alg.basic_solve(puzzle)
+        if not puzzle.solved:
+            puzzle = alg.guess_and_check(puzzle)
+    except pzl.SolutionError:
+        pass
 
     t1 = time.time()
     total_time = t1 - t0
 
     if puzzle.solved:
-        print('Solved puzzle:')
-        puzzle.print_puzzle()
-        print('Time to solve: {0:.4f}'.format(total_time))
+        if not validate:
+            print('Solved puzzle:')
+            puzzle.print_puzzle()
+            print('Time to solve: {0:.4f}'.format(total_time))
+        else:
+            print('{} solved!'.format(file_name))
     else:
-        print('This puzzle doesn\'t have a solution!')
-        print('Time it took to realize this: {0:.4f}'.format(total_time))
+        if not validate:
+            print('This puzzle doesn\'t have a solution!')
+            print('Time it took to realize this: {0:.4f}'.format(total_time))
+        else:
+            print('{} is unsolvable!'.format(file_name))
 
 
 if __name__ == '__main__':
-    main()
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-i', '--input', nargs='+', help='File with sudoku puzzle')
+    parser.add_argument('-v', '--validate', action='store_true', help='Only check if the puzzle(s) are solvable')
+    arguments = parser.parse_args()
+    if arguments.input:
+        for input_file in arguments.input:
+            main(input_file, arguments.validate)
+    else:
+        main(validate=arguments.validate)
