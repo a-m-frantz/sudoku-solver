@@ -1,5 +1,4 @@
 import os
-import statistics
 import sys
 import time
 from contextlib import contextmanager
@@ -36,14 +35,12 @@ def main(file, num_tests):
     max_time = max(run_times)
     min_time = min(run_times)
     avg_time = sum(run_times) / len(run_times)
-    std_dev = statistics.stdev(run_times)
     print('Total time = {0:.4f}'.format(total_time))
     print()
     print('Maximum runtime = {0:.4f}'.format(max_time))
     print('Minimum runtime = {0:.4f}'.format(min_time))
     print()
     print('Average runtime = {0:.4f}'.format(avg_time))
-    print('Standard Deviation = {0:.4f}'.format(std_dev))
 
 
 if __name__ == '__main__':
@@ -52,10 +49,10 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('input', nargs='+', help='File(s) with sudoku puzzle')
     parser.add_argument('-n', '--num-tests', type=int, default=20, help='Number of times to run solver. '
-                                                                        'Must be greater than 1')
+                                                                        'Must be greater than 0')
     arguments = parser.parse_args()
-    if arguments.num_tests < 2:
-        parser.error('num-tests must be greater than 1')
+    if arguments.num_tests < 1:
+        parser.error('num-tests must be greater than 0')
 
     for infile in arguments.input:
         print()
