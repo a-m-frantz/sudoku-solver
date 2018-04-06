@@ -20,7 +20,7 @@ def suppress_stdout():
 
 def main(file, num_tests):
     """Time how long sudoku_solver takes to solve the same puzzle over multiple runs."""
-    print('Timing {} over {} runs...'.format(file, num_tests))
+    print('Timing {} over {} run(s)...'.format(file, num_tests))
     start_time = time.time()
     run_times = []
     for _ in range(num_tests):
@@ -32,15 +32,16 @@ def main(file, num_tests):
     end_time = time.time()
 
     total_time = end_time - start_time
-    max_time = max(run_times)
-    min_time = min(run_times)
-    avg_time = sum(run_times) / len(run_times)
     print('Total time = {0:.4f}'.format(total_time))
-    print()
-    print('Maximum runtime = {0:.4f}'.format(max_time))
-    print('Minimum runtime = {0:.4f}'.format(min_time))
-    print()
-    print('Average runtime = {0:.4f}'.format(avg_time))
+    if len(run_times) > 1:
+        max_time = max(run_times)
+        min_time = min(run_times)
+        avg_time = sum(run_times) / len(run_times)
+        print()
+        print('Maximum runtime = {0:.4f}'.format(max_time))
+        print('Minimum runtime = {0:.4f}'.format(min_time))
+        print()
+        print('Average runtime = {0:.4f}'.format(avg_time))
 
 
 if __name__ == '__main__':
