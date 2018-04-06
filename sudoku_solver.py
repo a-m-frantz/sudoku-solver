@@ -55,10 +55,13 @@ def main(infile=None, validate=False):
         print('Solving...', end='\n\n')
 
     t0 = time.time()
-    alg.update_clue_peers(puzzle)
-    alg.basic_solve(puzzle)
-    if not puzzle.solved:
-        puzzle = alg.guess_and_check(puzzle)
+    try:
+        alg.update_clue_peers(puzzle)
+        alg.basic_solve(puzzle)
+        if not puzzle.solved:
+            puzzle = alg.guess_and_check(puzzle)
+    except pzl.SolutionError:
+        pass
 
     t1 = time.time()
     total_time = t1 - t0
@@ -75,7 +78,7 @@ def main(infile=None, validate=False):
             print('This puzzle doesn\'t have a solution!')
             print('Time it took to realize this: {0:.4f}'.format(total_time))
         else:
-            print('{} unsolvable!'.format(file_name))
+            print('{} is unsolvable!'.format(file_name))
 
 
 if __name__ == '__main__':
@@ -85,5 +88,8 @@ if __name__ == '__main__':
     parser.add_argument('-i', '--input', nargs='+', help='File with sudoku puzzle')
     parser.add_argument('-v', '--validate', action='store_true', help='Only check if the puzzle(s) are solvable')
     arguments = parser.parse_args()
-    for input_file in arguments.input:
-        main(input_file, arguments.validate)
+    if arguments.input:
+        for input_file in arguments.input:
+            main(input_file, arguments.validate)
+    else:
+        main(validate=arguments.validate)
