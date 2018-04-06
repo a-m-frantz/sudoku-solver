@@ -4,16 +4,15 @@ import time
 import sudoku_solver
 
 
-def main(args):
+def main(file, num_tests):
     """Time how long sudoku_solver takes to solve the same puzzle over multiple runs."""
-    num_tests = args.num_tests
-    print('Timing {} over {} runs...'.format(args.input, num_tests))
+    print('Timing {} over {} runs...'.format(file, num_tests))
     start_time = time.time()
     run_times = []
     for _ in range(num_tests):
         t_start = time.time()
         with sudoku_solver.suppress_stdout():
-            sudoku_solver.main(args.input)
+            sudoku_solver.main(file)
         t_end = time.time()
         run_times.append(t_end - t_start)
     end_time = time.time()
@@ -36,9 +35,13 @@ if __name__ == '__main__':
     import argparse
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('-i', '--input', help='File(s) with sudoku puzzle')
-    parser.add_argument('-n', '--num-tests', type=int, default=100, help='Number of times to run solver')
+    parser.add_argument('input', nargs='+', help='File(s) with sudoku puzzle')
+    parser.add_argument('-n', '--num-tests', type=int, default=20, help='Number of times to run solver')
     arguments = parser.parse_args()
     if arguments.num_tests < 2:
         parser.error('num-tests must be greater than 1')
-    main(arguments)
+
+    for infile in arguments.input:
+        print()
+        main(infile, arguments.num_tests)
+        print()
