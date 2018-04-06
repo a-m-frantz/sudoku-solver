@@ -72,20 +72,20 @@ def main(infile=None, validate=False):
             puzzle.print_puzzle()
             print('Time to solve: {0:.4f}'.format(total_time))
         else:
-            print('{} solved!'.format(file_name))
+            print('{} is solvable'.format(file_name))
     else:
         if not validate:
             print('This puzzle doesn\'t have a solution!')
             print('Time it took to realize this: {0:.4f}'.format(total_time))
         else:
-            print('{} is unsolvable!'.format(file_name))
+            print('{} is unsolvable'.format(file_name))
 
 
 if __name__ == '__main__':
     import argparse
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('-i', '--input', nargs='+', help='File with sudoku puzzle')
+    parser.add_argument('-i', '--input', nargs='*', help='File with sudoku puzzle')
     parser.add_argument('-v', '--validate', action='store_true', help='Only check if the puzzle(s) are solvable')
     arguments = parser.parse_args()
     if arguments.input:
