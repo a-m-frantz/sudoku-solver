@@ -91,11 +91,13 @@ if __name__ == '__main__':
     import argparse
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('-i', '--input', help='File with sudoku puzzle')
+    parser.add_argument('-i', '--input', nargs='+', help='File with sudoku puzzle')
     parser.add_argument('-q', '--quiet', action='store_true', help='Run without printing to stdout')
     arguments = parser.parse_args()
     if arguments.quiet:
         with suppress_stdout():
-            main(arguments)
+            for input_file in arguments.input:
+                main(input_file)
     else:
-        main(arguments.input)
+        for input_file in arguments.input:
+            main(input_file)
