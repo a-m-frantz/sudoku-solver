@@ -5,8 +5,21 @@ import algorithms as alg
 import puzzle as pzl
 
 
-def parse_file(file_contents):
-    """Validate that file has a puzzle with at least 17 clues and return the puzzle in string format if validated."""
+class ClueError(Exception):
+    """Exception thrown when a puzzle doesn't have enough clues, less than 17, to solve it."""
+    def __init__(self, file_name):
+        self.file_name = file_name
+
+
+def parse_file(file_name, validate):
+    """Check that file has a puzzle with at least 17 clues and return the puzzle in string format if validated.
+
+    :param file_name: name of file to check
+    :param validate: True if the user is only checking if the puzzle is solvable.
+                     This suppresses the warning that the puzzle doesn't have enough clues.
+    """
+    infile = open(file_name)
+    file_contents = infile.read()
     puzzle_list = [char for char in file_contents if char.isdigit() or char == '.']
     puzzle_string = ''.join(puzzle_list)
     if len(puzzle_string) == 81:
@@ -15,16 +28,22 @@ def parse_file(file_contents):
         if num_clues >= 17:
             return puzzle_string
         else:
-            print('This is an unsolvable puzzle. It has {} clues.\n'
-                  'There are no valid sudoku puzzles with fewer than 17 clues.'.format(num_clues))
-            return None
+            if not validate:
+                print('{} is an unsolvable puzzle. It has {} clues.\n'
+                      'There are no valid sudoku puzzles with fewer than 17 clues.'.format(file_name, num_clues))
+            raise ClueError(file_name)
     else:
-        print('File in incorrect format.\nSee README.md for accepted puzzle formats.')
+        print('{} in incorrect format.\nSee README.md for accepted puzzle formats.'.format(file_name))
         return None
 
 
-def read_file(file=None):
-    """Get puzzle file from user, validate it, and return a Puzzle object."""
+def read_file(file, validate):
+    """Get puzzle file from user, validate it, and return a Puzzle object and the name of the file the puzzle came from.
+
+    :param file: name of file to check
+    :param validate: True if the user is only checking if the puzzle is solvable.
+                     This suppresses the warning that the puzzle doesn't have enough clues.
+    """
     while True:
         try:
             if not file:
@@ -35,19 +54,27 @@ def read_file(file=None):
                 file = None
             if file_name == 'exit':
                 sys.exit('User quit program.')
-            infile = open(file_name)
-            file_contents = infile.read()
-            puzzle_string = parse_file(file_contents)
+            puzzle_string = parse_file(file_name, validate)
             if puzzle_string:
                 break
         except OSError:
-            print('File {} not found. Please try again.'.format(file_name))
+            print('File {} not found.'.format(file_name))
     puzzle = pzl.Puzzle(puzzle_string)
     return puzzle, file_name
 
 
 def main(infile=None, validate=False, quiet=False):
-    puzzle, file_name = read_file(infile)
+    while True:
+        try:
+            puzzle, file_name = read_file(infile, validate)
+            break
+        except ClueError as err:
+            if validate:
+                if not quiet:
+                    print('{} is unsolvable'.format(err.file_name))
+                return
+            else:
+                pass
 
     if not validate and not quiet:
         print('Starting puzzle:')
@@ -88,7 +115,7 @@ if __name__ == '__main__':
     import argparse
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('-i', '--input', nargs='*', help='File with sudoku puzzle')
+    parser.add_argument('input', nargs='*', help='File(s) with sudoku puzzle')
     parser.add_argument('-v', '--validate', action='store_true', help='Only check if the puzzle(s) are solvable')
     parser.add_argument('-q', '--quiet', action='store_true', help='Run without printing to stdout')
     arguments = parser.parse_args()
