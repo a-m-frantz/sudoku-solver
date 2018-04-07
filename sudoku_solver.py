@@ -117,10 +117,9 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('input', nargs='*', help='File(s) with sudoku puzzle')
     parser.add_argument('-v', '--validate', action='store_true', help='Only check if the puzzle(s) are solvable')
-    parser.add_argument('-q', '--quiet', action='store_true', help='Run without printing to stdout')
     arguments = parser.parse_args()
     if arguments.input:
         for input_file in arguments.input:
-            main(input_file, arguments.validate, arguments.quiet)
+            main(input_file, arguments.validate)
     else:
-        main(validate=arguments.validate, quiet=arguments.quiet)
+        main(validate=arguments.validate)
