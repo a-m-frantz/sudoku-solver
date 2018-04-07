@@ -1,7 +1,4 @@
-import os
-import sys
 import time
-from contextlib import contextmanager
 
 import sudoku_solver
 
@@ -29,18 +26,6 @@ def validate_file(file):
         return 1
 
 
-@contextmanager
-def suppress_stdout():
-    """Suppress stdout."""
-    with open(os.devnull, "w") as devnull:
-        old_stdout = sys.stdout
-        sys.stdout = devnull
-        try:
-            yield
-        finally:
-            sys.stdout = old_stdout
-
-
 def main(file, num_tests):
     """Time how long sudoku_solver takes to solve a puzzle."""
     if validate_file(file) != 0:
@@ -50,8 +35,7 @@ def main(file, num_tests):
     run_times = []
     for _ in range(num_tests):
         t_start = time.time()
-        with suppress_stdout():
-            sudoku_solver.main(file)
+        sudoku_solver.main(file, quiet=True)
         t_end = time.time()
         run_times.append(t_end - t_start)
     end_time = time.time()

@@ -46,10 +46,10 @@ def read_file(file=None):
     return puzzle, file_name
 
 
-def main(infile=None, validate=False):
+def main(infile=None, validate=False, quiet=False):
     puzzle, file_name = read_file(infile)
 
-    if not validate:
+    if not validate and not quiet:
         print('Starting puzzle:')
         puzzle.print_puzzle()
         print('Solving...', end='\n\n')
@@ -62,6 +62,9 @@ def main(infile=None, validate=False):
             puzzle = alg.guess_and_check(puzzle)
     except pzl.SolutionError:
         pass
+
+    if quiet:
+        return
 
     t1 = time.time()
     total_time = t1 - t0
@@ -87,9 +90,10 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-i', '--input', nargs='*', help='File with sudoku puzzle')
     parser.add_argument('-v', '--validate', action='store_true', help='Only check if the puzzle(s) are solvable')
+    parser.add_argument('-q', '--quiet', action='store_true', help='Run without printing to stdout')
     arguments = parser.parse_args()
     if arguments.input:
         for input_file in arguments.input:
-            main(input_file, arguments.validate)
+            main(input_file, arguments.validate, arguments.quiet)
     else:
-        main(validate=arguments.validate)
+        main(validate=arguments.validate, quiet=arguments.quiet)
