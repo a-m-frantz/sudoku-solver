@@ -103,7 +103,6 @@ class Puzzle:
             else:
                 self.cell_array[row].append(Cell(row, col))
             pos += 1
-        # print('Number of clues: {}'.format(num_clues), end='\n\n')
 
     def __deepcopy__(self, memodict={}):
         """Make a deepcopy of a puzzle."""

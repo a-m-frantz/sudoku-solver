@@ -69,7 +69,7 @@ def main(infile=None, validate=False, quiet=False):
     t1 = time.time()
     total_time = t1 - t0
 
-    if puzzle.solved:
+    if puzzle and puzzle.solved:
         if not validate:
             print('Solved puzzle:')
             puzzle.print_puzzle()
