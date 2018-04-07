@@ -19,7 +19,7 @@ def parse_file(file_contents):
                   'There are no valid sudoku puzzles with fewer than 17 clues.'.format(num_clues))
             return None
     else:
-        print('File in incorrect format.\nSee README for accepted puzzle formats.')
+        print('File in incorrect format.\nSee README.md for accepted puzzle formats.')
         return None
 
 

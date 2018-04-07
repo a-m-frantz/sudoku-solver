@@ -6,6 +6,29 @@ from contextlib import contextmanager
 import sudoku_solver
 
 
+def validate_file(file):
+    try:
+        open_file = open(file)
+        file_contents = open_file.read()
+        puzzle_list = [char for char in file_contents if char.isdigit() or char == '.']
+        puzzle_string = ''.join(puzzle_list)
+        if len(puzzle_string) == 81:
+            clues = [char for char in puzzle_string if char != '.' and char != '0']
+            num_clues = len(clues)
+            if num_clues >= 17:
+                return 0
+            else:
+                print('{} is an unsolvable puzzle. It has {} clues.\n'
+                      'There are no valid sudoku puzzles with fewer than 17 clues.'.format(file, num_clues))
+                return 3
+        else:
+            print('{} in incorrect format.\nSee README.md for accepted puzzle formats.'.format(file))
+            return 2
+    except OSError:
+        print('File {} not found.'.format(file))
+        return 1
+
+
 @contextmanager
 def suppress_stdout():
     """Suppress stdout."""
@@ -20,6 +43,8 @@ def suppress_stdout():
 
 def main(file, num_tests):
     """Time how long sudoku_solver takes to solve a puzzle."""
+    if validate_file(file) != 0:
+        return
     print('Timing {} over {} run(s)...'.format(file, num_tests))
     start_time = time.time()
     run_times = []
