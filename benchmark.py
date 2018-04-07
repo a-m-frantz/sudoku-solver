@@ -4,6 +4,13 @@ import sudoku_solver
 
 
 def validate_file(file):
+    """Validate that the file exists and is a proper puzzle file.
+
+    Preemptively perform all the checks that are done in the input loop of sudoku_solver.py.
+
+    :param file: name of file to validate
+    :return True if the file passes all checks, False if it fails
+    """
     try:
         open_file = open(file)
         file_contents = open_file.read()
@@ -13,22 +20,22 @@ def validate_file(file):
             clues = [char for char in puzzle_string if char != '.' and char != '0']
             num_clues = len(clues)
             if num_clues >= 17:
-                return 0
+                return True
             else:
                 print('{} is an unsolvable puzzle. It has {} clues.\n'
                       'There are no valid sudoku puzzles with fewer than 17 clues.'.format(file, num_clues))
-                return 3
+                return False
         else:
             print('{} in incorrect format.\nSee README.md for accepted puzzle formats.'.format(file))
-            return 2
+            return False
     except OSError:
         print('File {} not found.'.format(file))
-        return 1
+        return False
 
 
 def main(file, num_tests):
     """Time how long sudoku_solver takes to solve a puzzle."""
-    if validate_file(file) != 0:
+    if not validate_file(file):
         return
     print('Timing {} over {} run(s)...'.format(file, num_tests))
     start_time = time.time()
@@ -58,8 +65,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument('input', nargs='+', help='File(s) with sudoku puzzle')
-    parser.add_argument('-n', '--num-tests', type=int, default=20, help='Number of times to run solver. '
-                                                                        'Must be greater than 0')
+    parser.add_argument('-n', '--num-tests', type=int, default=20, help='Number of times to run solver, defaults to 20')
     arguments = parser.parse_args()
     if arguments.num_tests < 1:
         parser.error('num-tests must be greater than 0')
