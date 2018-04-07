@@ -3,7 +3,7 @@ Python program that can solve any sudoku puzzle.
 
 ## Usage
 ### sudoku_solver.py
-Clone this repository, navigate to its root directory and call the program
+Clone this repository, navigate to its root directory, and call the program
 from the commandline.
 ```
 git clone https://github.com/a-m-frantz/sudoku-solver
@@ -23,7 +23,7 @@ This just prints a message indicating whether the puzzle(s) are solvable.
 The `-h` option prints a help message for the usage of the program.
 
 ### benchmark.py
-`benchmark.py` can be used to test the performance of the `sudoku_solver.py`.
+`benchmark.py` can be used to test the performance of `sudoku_solver.py`.
 Call it with `python benchmark.py [-h] [-n NUM_TESTS] input [input ...]`.
 The script will print the maximum, minimum, and average run times for each
 puzzle provided over a number of runs. The number of times to test each file
