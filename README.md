@@ -32,6 +32,10 @@ can be specified with the `-n` option. It defaults to 20 tests.
 The most important result to look at is the minimum time to run.
 This time represents when your computer was least busy with other processes.
 
+Note that `benchmark.py` won't detect if a puzzle is unsolvable. In case of
+an unsolvable puzzle, the output will represent the time it took for the
+program to discover the puzzle could not be solved.
+
 ## Input files
 For input files, sudoku puzzles are represented as 81 characters,
 with `.`'s or `0`'s standing for unknown squares and digits `1-9` standing
