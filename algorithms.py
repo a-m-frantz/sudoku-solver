@@ -135,22 +135,23 @@ def guess_and_check(puzzle, recursed_into=False):
         puzzle.changed = False
         checked_cells = set()
         largest_set_length = 1
-        largest_set_length_increased = True
-        for min_set_length in range(2, 9):  # TODO comment what set_length variables are doing
-            if not largest_set_length_increased and min_set_length > largest_set_length:
+        # min_set_length is used to begin guessing and checking on cells with the smallest candidate sets
+        for min_set_length in range(2, 9+1):
+            # Efficient way to check if all cells have been checked
+            # Largest set length will have been found after first pass through when min_set_length == 2
+            if min_set_length > 2 and min_set_length > largest_set_length:
                 break
-            largest_set_length_increased = False
             for row, col in itertools.product(range(9), repeat=2):
                 cell = puzzle.cell_array[row][col]
-                if len(cell.candidates) > largest_set_length:
+                set_length = len(cell.candidates)
+                if set_length > largest_set_length:
                     largest_set_length = len(cell.candidates)
-                    largest_set_length_increased = True
-                if not cell.is_solved() and len(cell.candidates) <= min_set_length and cell not in checked_cells:
+                if not cell.is_solved() and set_length <= min_set_length and cell not in checked_cells:
                     checked_cells.add(cell)
                     bad_vals = set()
                     for val in cell.candidates:
                         # if all checked values are bad except last one, last value must be good unless in recursion
-                        if len(cell.candidates - bad_vals) == 1 and not recursed_into:
+                        if not recursed_into and set_length - len(bad_vals) == 1:
                             break
                         puzzle_copy = copy.deepcopy(puzzle)
                         copied_cell = puzzle_copy.cell_array[row][col]
@@ -159,10 +160,11 @@ def guess_and_check(puzzle, recursed_into=False):
                             update_peers(puzzle_copy, row, col, val)
                             basic_solve(puzzle_copy)
                             solved_puzzle = guess_and_check(puzzle_copy, recursed_into=True)
+                            # guess_and_check returns None if the puzzle wasn't solved
                             if solved_puzzle:
                                 return solved_puzzle
                             else:
-                                del solved_puzzle
+                                del solved_puzzle  # puzzle is not solved
                         except SolutionError:
                             bad_vals.add(val)
                     if (len(bad_vals)) > 0:
