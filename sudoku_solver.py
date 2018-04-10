@@ -70,13 +70,12 @@ def main(infile=None, check=False, quiet=False):
             break
         except ClueError as err:
             if check:
-                if not quiet:
-                    print('{} is unsolvable'.format(err.file_name))
+                print('{} is unsolvable'.format(err.file_name))
                 return
             else:
                 pass
 
-    if not check and not quiet:
+    if not quiet and not check:
         print('Starting puzzle:')
         puzzle.print_puzzle()
         print('Solving...', end='\n\n')
