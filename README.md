@@ -70,3 +70,57 @@ each of the following equivalent input:
 ```
 
 Sample puzzle files are included in the `sample_puzzles/` directory.
+
+## Algorithm
+The puzzle board can be broken down into "units", which are a single row,
+column, or block. Each unit is comprised of 9 "cells", and each cell is in
+3 units. Additionally, each cell has 20 "peers". A peer is a cell which
+occupies the same row, column, or block.
+
+At the start of the program, each of the 81 cells gets assigned
+a list of candidates, [1-9], representing the values that the cell could be.
+The clue cells start out with their value solved.
+Values are removed from the candidate list as the algorithm progresses.
+A cell is solved once the size of its candidate list is reduced to one.
+
+When a cell is solved, the value it took on is removed from the candidate
+list of all of its peers.
+
+A cell can solved if it is a "hidden single."
+When you look at the unsolved cells of a unit, if there is only one cell
+that could be any given value, that cell must be that value, regardless
+of how many other values are in its candidate list. This cell would be a
+hidden single.
+
+For example, you look at row 1 and there are 3 unsolved cells. The values
+which have not been taken in that unit are 4, 6, and 7. Two of the cells
+could be 6 or 7, and the third cell could be 4, 6, or 7. The third cell
+must be 4, because row 1 must have a 4 in it and the third cell
+is the only cell which could be a 4.
+
+Merely finding hidden singles may be enough to solve the easiest sudoku
+puzzles, but it won't be enough for most. When that isn't enough, you can
+guess a possible value for an unsolved cell, then try to find any
+new hidden singles that value created. If that results in a contradiction
+somewhere else in the puzzle, such as two cells in the same unit having 4
+as their answer, then you know the value you guessed for the original cell
+is wrong, and you can remove it from its candidate list. However, if there
+is no contradiction, that doesn't mean it is the correct value. It only
+means that guess is still a possible value.
+
+If this guessing and checking is done recursively, making a second guess
+when the first guess doesn't result in a contradiction,
+and a third guess when the second guess doesn't result in a contradiction,
+etc., then all valid sudoku puzzles can
+be solved using only these two techniques.
+
+The implementation of these two algorithms can be looked at in
+`algorithms.py`.
+
+There are other techniques which are similar to finding hidden singles,
+but are a bit more complicated. A few of these can be found in
+`extra_algorithms.py`. These additional algorithms are not incorporated
+into the main program because they reduce the efficiency of the program,
+but are valuable tools when solving sudoku puzzles by yourself, as the
+guessing and checking method is easy for a computer to do, but hard to do
+by hand.
