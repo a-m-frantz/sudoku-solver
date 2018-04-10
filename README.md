@@ -8,7 +8,7 @@ from the commandline.
 ```
 git clone https://github.com/a-m-frantz/sudoku-solver
 cd sudoku-solver/
-python sudoku_solver.py [-h] [-v] [input [input ...]]
+python sudoku_solver.py [-h] [-c] [input [input ...]]
 ```
 `input` is the path to any number of files with sudoku puzzles in them.
 If no files are supplied, the program will interactively ask you for a
@@ -17,7 +17,7 @@ path to a file after you run it.
 The default behavior is to print the original puzzle followed by its
 solution or a message that it can't be solved and the time it took to solve.
 You can modify this behavior by typing
-`python sudoku_solver.py -v [input [input ...]]`.
+`python sudoku_solver.py -c [input [input ...]]`.
 This just prints a message indicating whether the puzzle(s) are solvable.
 
 The `-h` option prints a help message for the usage of the program.
