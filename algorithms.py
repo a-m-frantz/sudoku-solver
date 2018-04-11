@@ -17,23 +17,23 @@ def update_peers(puzzle, row, col, val, unit_type=''):
     """
     # Rows #
     if unit_type == '' or unit_type == 'row':
-        for pos in ROW_ITER[row]:
-            if pos[1] != col:
-                cell = puzzle.cell_array[pos[0]][pos[1]]
+        for inner_row, inner_col in ROW_ITER[row]:
+            if inner_col != col:
+                cell = puzzle.cell_array[inner_row][inner_col]
                 previously_solved = cell.is_solved()
                 cell.remove_candidate(val)
                 if cell.is_solved() and not previously_solved:
-                    update_peers(puzzle, pos[0], pos[1], cell.last_candidate())
+                    update_peers(puzzle, inner_row, inner_col, cell.last_candidate())
 
     # Columns #
     if unit_type == '' or unit_type == 'column':
-        for pos in COL_ITER[col]:
-            if pos[0] != row:
-                cell = puzzle.cell_array[pos[0]][pos[1]]
+        for inner_row, inner_col in COL_ITER[col]:
+            if inner_row != row:
+                cell = puzzle.cell_array[inner_row][inner_col]
                 previously_solved = cell.is_solved()
                 cell.remove_candidate(val)
                 if cell.is_solved() and not previously_solved:
-                    update_peers(puzzle, pos[0], pos[1], cell.last_candidate())
+                    update_peers(puzzle, inner_row, inner_col, cell.last_candidate())
 
     # Blocks #
     if unit_type == '' or unit_type == 'block':
