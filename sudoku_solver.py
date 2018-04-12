@@ -53,7 +53,8 @@ def read_file(file, check):
                 file_name = file
                 file = None
             if file_name == 'exit':
-                sys.exit('User quit program.')
+                print('User quit program.')
+                return None, None
             puzzle_string = parse_file(file_name, check)
             if puzzle_string:
                 break
@@ -67,6 +68,8 @@ def main(infile=None, check=False, quiet=False):
     while True:
         try:
             puzzle, file_name = read_file(infile, check)
+            if not puzzle:
+                return
             break
         except ClueError as err:
             if check:
