@@ -2,12 +2,17 @@
 Python program that can solve any sudoku puzzle.
 
 ## Usage
-### sudoku_solver.py
-Clone this repository, navigate to its root directory, and call the program
-from the commandline.
+This program requires Python3 to function. Make sure you have the proper
+version installed.
+
+First you have to clone this repository and navigate to its root directory.
 ```
 git clone https://github.com/a-m-frantz/sudoku-solver
 cd sudoku-solver/
+```
+
+### sudoku_solver.py
+```
 python sudoku_solver.py [-h] [-c] [input [input ...]]
 ```
 `input` is the path to any number of files with sudoku puzzles in them.
@@ -16,18 +21,25 @@ path to a file after you run it.
 
 The default behavior is to print the original puzzle followed by its
 solution or a message that it can't be solved and the time it took to solve.
-You can modify this behavior by typing
-`python sudoku_solver.py -c [input [input ...]]`.
+You can modify this with the `-c` flag.
+```
+python sudoku_solver.py -c [input [input ...]]
+```
 This just prints a message indicating whether the puzzle(s) are solvable.
+If you're just interested in the time it took, see `benchmark.py` below.
 
 The `-h` option prints a help message for the usage of the program.
 
 ### benchmark.py
+```
+python benchmark.py [-h] [-n NUM_TESTS] input [input ...]
+```
 `benchmark.py` can be used to test the performance of `sudoku_solver.py`.
-Call it with `python benchmark.py [-h] [-n NUM_TESTS] input [input ...]`.
-The script will print the maximum, minimum, and average run times for each
-puzzle provided over a number of runs. The number of times to test each file
+This script will print the maximum, minimum, and average run times for each
+puzzle provided, over a number of runs. The number of times to test each file
 can be specified with the `-n` option. It defaults to 20 tests.
+
+The `-h` option prints a help message for the usage of the script.
 
 The most important result to look at is the minimum time to run.
 This time represents when your computer was least busy with other processes.
@@ -73,9 +85,9 @@ Sample puzzle files are included in the `sample_puzzles/` directory.
 
 ## Algorithm
 The puzzle board can be broken down into "units", which are a single row,
-column, or block. Each unit is comprised of 9 "cells", and each cell is in
-3 units. Additionally, each cell has 20 "peers". A peer is a cell which
-occupies the same row, column, or block.
+column, or block. Each unit is comprised of 9 "cells", and each cell is a
+part of 3 units. Additionally, each cell has 20 "peers".
+A peer is a cell which occupies the same row, column, or block.
 
 At the start of the program, each of the 81 cells gets assigned
 a list of candidates, [1-9], representing the values that the cell could be.
@@ -86,7 +98,7 @@ A cell is solved once the size of its candidate list is reduced to one.
 When a cell is solved, the value it took on is removed from the candidate
 list of all of its peers.
 
-A cell can solved if it is a "hidden single."
+A cell can be solved if it is a "hidden single."
 When you look at the unsolved cells of a unit, if there is only one cell
 that could be any given value, that cell must be that value, regardless
 of how many other values are in its candidate list. This cell would be a
@@ -104,7 +116,7 @@ guess a possible value for an unsolved cell, then try to find any
 new hidden singles that value created. If that results in a contradiction
 somewhere else in the puzzle, such as two cells in the same unit having 4
 as their answer, then you know the value you guessed for the original cell
-is wrong, and you can remove it from its candidate list. However, if there
+is wrong and you can remove it from the candidate list. However, if there
 is no contradiction, that doesn't mean it is the correct value. It only
 means that guess is still a possible value.
 
