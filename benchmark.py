@@ -53,8 +53,8 @@ def main(file, num_tests):
         max_time = max(run_times)
         min_time = min(run_times)
         avg_time = sum(run_times) / len(run_times)
-        print('Minimum runtime = {0:.4f}'.format(min_time))
         print('Maximum runtime = {0:.4f}'.format(max_time))
+        print('Minimum runtime = {0:.4f}'.format(min_time))
         print('Average runtime = {0:.4f}'.format(avg_time))
 
 
