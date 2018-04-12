@@ -53,10 +53,8 @@ def main(file, num_tests):
         max_time = max(run_times)
         min_time = min(run_times)
         avg_time = sum(run_times) / len(run_times)
-        print()
-        print('Maximum runtime = {0:.4f}'.format(max_time))
         print('Minimum runtime = {0:.4f}'.format(min_time))
-        print()
+        print('Maximum runtime = {0:.4f}'.format(max_time))
         print('Average runtime = {0:.4f}'.format(avg_time))
 
 
@@ -70,7 +68,13 @@ if __name__ == '__main__':
     if arguments.num_tests < 1:
         parser.error('num-tests must be greater than 0')
 
+    t0 = time.clock()
     for infile in arguments.input:
         print()
         main(infile, arguments.num_tests)
         print()
+    if len(arguments.input) > 1:
+        t1 = time.clock()
+        total = t1 - t0
+        print()
+        print('Total time for all tests = {0:.4f}'.format(total))
