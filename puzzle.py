@@ -124,8 +124,7 @@ class Puzzle:
     def changed(self):
         """Return True if any cell has been changed, False if none have."""
         for row, col in itertools.product(range(9), repeat=2):
-            cell = self.cell_array[row][col]
-            if cell.is_changed():
+            if self.cell_array[row][col].is_changed():
                 return True
         return False
 
@@ -134,8 +133,7 @@ class Puzzle:
         # if changed being set to false, all cells _changed must be false
         if not changed:
             for row, col in itertools.product(range(9), repeat=2):
-                cell = self.cell_array[row][col]
-                cell._changed = changed
+                self.cell_array[row][col]._changed = changed
         # if changed being set to true, only one cell _changed must be true
         elif changed:
             self.cell_array[0][0]._changed = changed
