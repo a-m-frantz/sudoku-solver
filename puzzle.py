@@ -33,7 +33,7 @@ class Cell:
             self._last_candidate = val
         else:
             self._solved = False
-            self._last_candidate = None
+            self._last_candidate = ''
 
     def __deepcopy__(self, memodict={}):
         """Make a deepcopy of a cell."""
