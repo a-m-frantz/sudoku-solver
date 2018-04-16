@@ -1,6 +1,8 @@
 import copy
 import itertools
 
+DIGITS = '123456789'
+
 BANDS = [[0, 1, 2], [3, 4, 5], [6, 7, 8]]
 
 ROW_ITER = [[(row, col) for col in range(9)] for row in range(9)]
@@ -15,22 +17,21 @@ class SolutionError(Exception):
 
 class Cell:
     """A single cell of a sudoku puzzle"""
-    def __init__(self, row, col, val=None):
+    def __init__(self, row, col, val=DIGITS):
         """Initialize a cell.
 
         :param row: cell's row
         :param col: cell's column
-        :param val: int of a clue's value, None for a cell with an unknown value
+        :param val: str of a clue's value, '123456789' for a cell with an unknown value
         """
         self.POS = (row, col)
         self._changed = False
-        self.dont_remove = set()
-        if val:
-            self.candidates = {val}
+        self.dont_remove = ''
+        self.candidates = val
+        if val != DIGITS:
             self._solved = True
             self._last_candidate = val
         else:
-            self.candidates = {val for val in range(1, 9+1)}
             self._solved = False
             self._last_candidate = None
 
@@ -41,18 +42,14 @@ class Cell:
         memodict[id(self)] = result
         result.POS = self.POS
         result._changed = False
-        result.dont_remove = set()
-        result.candidates = copy.deepcopy(self.candidates)
-        if len(result.candidates) == 1:
-            result._solved = True
-            result._last_candidate = next(iter(result.candidates))
-        else:
-            result._solved = False
-            result._last_candidate = None
+        result.dont_remove = ''
+        result.candidates = self.candidates
+        result._solved = self._solved
+        result._last_candidate = self._last_candidate
         return result
 
     def is_changed(self):
-        """Return whether this cell has had it's candidate set changed."""
+        """Return whether this cell has had it's candidate list changed."""
         return self._changed
 
     def is_solved(self):
@@ -64,29 +61,32 @@ class Cell:
         return self._last_candidate
 
     def remove_candidate(self, candidate):
-        """Remove value from this cell's candidate set. Raise SolutionError if trying to remove the last candidate."""
+        """Remove value from this cell's candidate list. Raise SolutionError if trying to remove the last candidate."""
         if candidate in self.candidates and candidate not in self.dont_remove:
             if self.is_solved():
                 raise SolutionError()
-            self.candidates.remove(candidate)
+            self.candidates = self.candidates.replace(candidate, '')
             self._changed = True
-            if len(self.candidates) == 1:
+            candidates = self.candidates
+            if len(candidates) == 1:
                 self._solved = True
-                self._last_candidate = next(iter(self.candidates))
+                self._last_candidate = candidates
 
-    def set_cell(self, val_set):
-        """Set this cell's candidate set to the union of it's candidate set and the set of provided values."""
-        new_candidates = self.candidates & val_set  # don't add candidates already ruled out
+    def set_cell(self, vals):
+        """Set this cell's candidate list to the union of it's candidate list and the set of provided values."""
+        new_candidates_list = [val for val in vals if val in self.candidates]  # don't add candidates already ruled out
+        new_candidates = ''.join(new_candidates_list)
         if self.candidates == new_candidates:  # candidates already equal to new values
             return
         self.candidates = new_candidates
         self._changed = True
-        if len(self.candidates) == 1:
+        candidates = self.candidates
+        if len(candidates) == 1:
             self._solved = True
-            self._last_candidate = next(iter(self.candidates))
+            self._last_candidate = candidates
 
     def print_cell(self):
-        """Print this cell's position and candidate set for debugging."""
+        """Print this cell's position and candidate list for debugging."""
         print('Cell: ({}, {})'.format(self.POS[0], self.POS[1]))
         print(self.candidates)
 
@@ -105,7 +105,7 @@ class Puzzle:
         for row, col in itertools.product(range(9), repeat=2):
             if raw_puzzle[pos] != '.' and raw_puzzle[pos] != '0':
                 num_clues += 1
-                self.cell_array[row].append(Cell(row, col, int(raw_puzzle[pos])))
+                self.cell_array[row].append(Cell(row, col, raw_puzzle[pos]))
             else:
                 self.cell_array[row].append(Cell(row, col))
             pos += 1
