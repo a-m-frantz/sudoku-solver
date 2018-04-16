@@ -49,7 +49,7 @@ class Cell:
         return result
 
     def is_changed(self):
-        """Return whether this cell has had it's candidate list changed."""
+        """Return whether this cell has had its candidate list changed."""
         return self._changed
 
     def is_solved(self):
@@ -73,7 +73,7 @@ class Cell:
                 self._last_candidate = candidates
 
     def set_cell(self, vals):
-        """Set this cell's candidate list to the union of it's candidate list and the set of provided values."""
+        """Set this cell's candidate list to the union of its candidate list and the set of provided values."""
         new_candidates_list = [val for val in vals if val in self.candidates]  # don't add candidates already ruled out
         new_candidates = ''.join(new_candidates_list)
         if self.candidates == new_candidates:  # candidates already equal to new values

@@ -66,7 +66,7 @@ def find_hidden_sets(puzzle, n):
                         cells.clear()
                         break
 
-                    # If cell is solved or none of val_set appears in it's candidate list, continue to next cell
+                    # If cell is solved or none of val_set appears in its candidate list, continue to next cell
                     set_union = [val for val in val_set if val in cell.candidates]
                     if cell_solved or len(set_union) == 0:
                         continue
