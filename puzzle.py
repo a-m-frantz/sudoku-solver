@@ -123,21 +123,19 @@ class Puzzle:
     @property
     def changed(self):
         """Return True if any cell has been changed, False if none have."""
-        for row in range(9):
-            for col in range(9):
-                cell = self.cell_array[row][col]
-                if cell.is_changed():
-                    return True
+        for row, col in itertools.product(range(9), repeat=2):
+            cell = self.cell_array[row][col]
+            if cell.is_changed():
+                return True
         return False
 
     @changed.setter
     def changed(self, changed):
         # if changed being set to false, all cells _changed must be false
         if not changed:
-            for row in range(9):
-                for col in range(9):
-                    cell = self.cell_array[row][col]
-                    cell._changed = changed
+            for row, col in itertools.product(range(9), repeat=2):
+                cell = self.cell_array[row][col]
+                cell._changed = changed
         # if changed being set to true, only one cell _changed must be true
         elif changed:
             self.cell_array[0][0]._changed = changed
@@ -145,10 +143,9 @@ class Puzzle:
     @property
     def solved(self):
         """Return True if puzzle is solved, False if not."""
-        for row in range(9):
-            for col in range(9):
-                if not self.cell_array[row][col].is_solved():
-                    return False
+        for row, col in itertools.product(range(9), repeat=2):
+            if not self.cell_array[row][col].is_solved():
+                return False
         try:
             self.check()
             return True
@@ -185,6 +182,5 @@ class Puzzle:
 
     def print_all_candidates(self):
         """Print each cell's candidate set for debugging."""
-        for row in range(9):
-            for col in range(9):
-                self.cell_array[row][col].print_cell()
+        for row, col in itertools.product(range(9), repeat=2):
+            self.cell_array[row][col].print_cell()
