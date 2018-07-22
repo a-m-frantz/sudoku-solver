@@ -16,6 +16,8 @@ def find_preemptive_sets(puzzle, n):
     for unit_type_id, unit_type in enumerate([alg.ROW_ITER, alg.COL_ITER, alg.BLOCK_ITER]):
         for unit in unit_type:
             for preemptive_tup in itertools.combinations(range(1, 9+1), n):
+                if len(preemptive_tup) > len(set(preemptive_tup)):  # skip set if any values repeat
+                    continue
                 preemptive_set = ''.join(str(val) for val in preemptive_tup)
                 cells = []
                 for row, col in unit:
@@ -54,6 +56,8 @@ def find_hidden_sets(puzzle, n):
     for unit_type in [alg.ROW_ITER, alg.COL_ITER, alg.BLOCK_ITER]:
         for unit in unit_type:
             for val_tup in itertools.combinations(range(1, 9+1), n):
+                if len(val_tup) > len(set(val_tup)):  # skip set if any values repeat
+                    continue
                 val_set = ''.join(str(val) for val in val_tup)
                 val_set_matches = [set() for _ in range(n)]
                 cells = []
