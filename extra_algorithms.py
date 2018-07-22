@@ -7,8 +7,8 @@ def find_preemptive_sets(puzzle, n):
     """Find preemptive sets and remove them from the candidate lists of other cells in the unit.
 
     A preemptive set is a set of values, size 'n', that are the only possible values for a set of cells, size 'n',
-    within the same unit.  Preemptive sets can be safely removed from any cell in the unit that could be a value not
-    inside of the preemptive set.  Preemptive sets are often called naked sets.
+    within the same unit.  Preemptive sets can be safely removed from any cell in the unit that could be a value besides
+    those in the preemptive set.  Preemptive sets are often called naked sets.
 
     :param puzzle: Puzzle object
     :param n: size of preemptive sets to be found
@@ -16,13 +16,16 @@ def find_preemptive_sets(puzzle, n):
     for unit_type_id, unit_type in enumerate([alg.ROW_ITER, alg.COL_ITER, alg.BLOCK_ITER]):
         for unit in unit_type:
             for preemptive_tup in itertools.combinations(range(1, 9+1), n):
-                preemptive_set = set(preemptive_tup)
+                if len(preemptive_tup) > len(set(preemptive_tup)):  # skip set if any values repeat
+                    continue
+                preemptive_set = ''.join(str(val) for val in preemptive_tup)
                 cells = []
                 for row, col in unit:
                     cell = puzzle.cell_array[row][col]
 
                     # check that all candidates are in preemptive_set
-                    if cell.is_solved() or len(cell.candidates - preemptive_set) != 0:
+                    candidates_not_in_set = [val for val in cell.candidates if val not in preemptive_set]
+                    if cell.is_solved() or len(candidates_not_in_set) != 0:  # some candidates not in preemptive set
                         continue
                     if len(cells) < n:
                         cells.append(cell)
@@ -37,7 +40,7 @@ def find_preemptive_sets(puzzle, n):
                     for cell, val in itertools.product(cells, preemptive_set):
                         alg.update_peers(puzzle, cell.POS[0], cell.POS[1], val, unit_with_pair)
                     for cell in cells:
-                        cell.dont_remove = set()
+                        cell.dont_remove = ''
 
 
 def find_hidden_sets(puzzle, n):
@@ -53,7 +56,9 @@ def find_hidden_sets(puzzle, n):
     for unit_type in [alg.ROW_ITER, alg.COL_ITER, alg.BLOCK_ITER]:
         for unit in unit_type:
             for val_tup in itertools.combinations(range(1, 9+1), n):
-                val_set = set(val_tup)
+                if len(val_tup) > len(set(val_tup)):  # skip set if any values repeat
+                    continue
+                val_set = ''.join(str(val) for val in val_tup)
                 val_set_matches = [set() for _ in range(n)]
                 cells = []
                 for row, col in unit:
@@ -65,8 +70,9 @@ def find_hidden_sets(puzzle, n):
                         cells.clear()
                         break
 
-                    # If cell is solved or none of val_set appears in it's candidate list, continue to next cell
-                    if cell_solved or len(val_set & cell.candidates) == 0:
+                    # If cell is solved or none of val_set appears in its candidate list, continue to next cell
+                    set_union = [val for val in val_set if val in cell.candidates]
+                    if cell_solved or len(set_union) == 0:
                         continue
 
                     for val_index, val in enumerate(val_set):
@@ -84,12 +90,14 @@ def find_hidden_sets(puzzle, n):
                     else:
                         cells.append(cell)
                 if len(cells) == n:
-                    combined_candidates = set()
+                    combined_candidates = []
                     for cell in cells:
-                        combined_candidates = combined_candidates | cell.candidates
+                        new_vals = [val for val in cell.candidates if val not in combined_candidates]
+                        combined_candidates += new_vals
 
                     # Check that found set is hidden, not naked
-                    if len(combined_candidates - val_set) == 0:
+                    vals_not_in_set = [val for val in combined_candidates if val not in val_set]
+                    if len(vals_not_in_set) == 0:
                         continue
                     for cell in cells:
                         cell.set_cell(val_set)
@@ -99,7 +107,7 @@ def find_hidden_sets(puzzle, n):
 
 def _row_sub_unit_exclusions(puzzle):
     """Private find_sub_unit_exclusions() function."""
-    for row, val in itertools.product(range(9), range(1, 9+1)):
+    for row, val in itertools.product(range(9), alg.DIGITS):
         val_solved = False
         val_in_sub_units = []
         # A sub unit is columns [0-2], [3-5], or [6-8] of a row
@@ -139,7 +147,7 @@ def _row_sub_unit_exclusions(puzzle):
 
 def _col_sub_unit_exclusions(puzzle):
     """Private find_sub_unit_exclusions() function."""
-    for col, val in itertools.product(range(9), range(1, 9+1)):
+    for col, val in itertools.product(range(9), alg.DIGITS):
         val_solved = False
         val_in_sub_units = []
         # A sub unit is rows [0-2], [3-5], or [6-8] of a column
@@ -179,7 +187,7 @@ def _col_sub_unit_exclusions(puzzle):
 
 def _horizontal_block_sub_unit_exclusions(puzzle):
     """Private find_sub_unit_exclusions() function."""
-    for block_rows, block_cols, val in itertools.product(alg.BANDS, alg.BANDS, range(1, 9+1)):
+    for block_rows, block_cols, val in itertools.product(alg.BANDS, alg.BANDS, alg.DIGITS):
         val_solved = False
         val_in_rows = []
         for row_index, row in enumerate(block_rows):
@@ -195,7 +203,7 @@ def _horizontal_block_sub_unit_exclusions(puzzle):
                         break
             if val_solved:
                 break
-        # If value is solved or appears in more than one row, go to next block
+        # If value is solved or appears in more than one row, go to next value
         if val_solved or len(val_in_rows) != 1:
             break
         row_index = val_in_rows[0]
@@ -213,7 +221,7 @@ def _horizontal_block_sub_unit_exclusions(puzzle):
 
 def _vertical_block_sub_unit_exclusions(puzzle):
     """Private find_sub_unit_exclusions() function."""
-    for block_rows, block_cols, val in itertools.product(alg.BANDS, alg.BANDS, range(1, 9+1)):
+    for block_rows, block_cols, val in itertools.product(alg.BANDS, alg.BANDS, alg.DIGITS):
         val_solved = False
         val_in_cols = []
         for col_index, col in enumerate(block_cols):
@@ -229,7 +237,7 @@ def _vertical_block_sub_unit_exclusions(puzzle):
                         break
             if val_solved:
                 break
-        # If value is solved or appears in more than one row, go to next block
+        # If value is solved or appears in more than one row, go to next value
         if val_solved or len(val_in_cols) != 1:
             break
         col_index = val_in_cols[0]

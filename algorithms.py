@@ -1,7 +1,7 @@
 import copy
 import itertools
 
-from puzzle import SolutionError, BANDS, ROW_ITER, COL_ITER, BLOCK_ITER
+from puzzle import SolutionError, DIGITS, BANDS, ROW_ITER, COL_ITER, BLOCK_ITER
 
 
 def update_peers(puzzle, row, col, val, unit_type=''):
@@ -79,7 +79,7 @@ def find_hidden_singles(puzzle):
     """
     for unit_type in [ROW_ITER, COL_ITER, BLOCK_ITER]:
         for unit in unit_type:
-            for val in range(1, 9+1):
+            for val in DIGITS:
                 potential_single = None
                 for row, col in unit:
                     cell = puzzle.cell_array[row][col]
@@ -94,13 +94,13 @@ def find_hidden_singles(puzzle):
 
                     if not potential_single:
                         potential_single = cell
-                    else:
+                    else:  # more than one cell can be val. break to next value
                         potential_single = None
                         break
 
                 if potential_single:
                     single = potential_single
-                    single.set_cell({val})
+                    single.set_cell(val)
                     update_peers(puzzle, single.POS[0], single.POS[1], single.last_candidate())
 
 
@@ -128,28 +128,28 @@ def guess_and_check(puzzle, recursed_into=False):
     while puzzle.changed:
         puzzle.changed = False
         checked_cells = set()
-        largest_set_length = 1
-        # min_set_length is used to begin guessing and checking on cells with the smallest candidate sets
-        for min_set_length in range(2, 9+1):
+        longest_list = 1
+        # min_list_length is used to begin guessing and checking on cells with the smallest candidate lists
+        for min_list_length in range(2, 9+1):
             # Efficient way to check if all cells have been checked
-            # Largest set length will have been found after first pass through when min_set_length == 2
-            if min_set_length > 2 and min_set_length > largest_set_length:
+            # Largest list length will have been found after first pass through when min_list_length == 2
+            if min_list_length > longest_list and min_list_length > 2:
                 break
             for row, col in itertools.product(range(9), repeat=2):
                 cell = puzzle.cell_array[row][col]
-                set_length = len(cell.candidates)
-                if set_length > largest_set_length:
-                    largest_set_length = len(cell.candidates)
-                if not cell.is_solved() and set_length <= min_set_length and cell not in checked_cells:
+                list_length = len(cell.candidates)
+                if list_length > longest_list:
+                    longest_list = len(cell.candidates)
+                if not cell.is_solved() and list_length <= min_list_length and cell not in checked_cells:
                     checked_cells.add(cell)
-                    bad_vals = set()
+                    bad_vals = ''
                     for val in cell.candidates:
                         # if all checked values are bad except last one, last value must be good unless in recursion
-                        if not recursed_into and set_length - len(bad_vals) == 1:
+                        if not recursed_into and list_length - len(bad_vals) == 1:
                             break
                         puzzle_copy = copy.deepcopy(puzzle)
                         copied_cell = puzzle_copy.cell_array[row][col]
-                        copied_cell.set_cell({val})
+                        copied_cell.set_cell(val)
                         try:
                             update_peers(puzzle_copy, row, col, val)
                             basic_solve(puzzle_copy)
@@ -157,11 +157,9 @@ def guess_and_check(puzzle, recursed_into=False):
                             # guess_and_check returns None if the puzzle wasn't solved
                             if solved_puzzle:
                                 return solved_puzzle
-                            else:
-                                del solved_puzzle  # puzzle is not solved
                         except SolutionError:
-                            bad_vals.add(val)
-                    if (len(bad_vals)) > 0:
+                            bad_vals += val
+                    if len(bad_vals) > 0:
                         for val in bad_vals:
                             cell.remove_candidate(val)
                         if cell.is_solved():

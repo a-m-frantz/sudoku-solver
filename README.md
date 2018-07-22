@@ -136,3 +136,15 @@ into the main program because they reduce the efficiency of the program,
 but are valuable tools when solving sudoku puzzles by yourself, as the
 guessing and checking method is easy for a computer to do, but hard to do
 by hand.
+
+## References
+The 20 puzzles found in `sample_puzzles/hard20/` are the puzzles that were
+used to benchmark 16 other sudoku solvers in
+[this article](https://attractivechaos.wordpress.com/2011/06/19/an-incomplete-review-of-sudoku-solver-implementations/).
+The article provides a good overview of ways to implement a sudoku solver
+in a variety of languages.
+
+The articles written by [Peter Norivg](http://norvig.com/sudoku.html) and
+[Peter Cock](https://warwick.ac.uk/fac/sci/moac/people/students/peter_cock/python/sudoku/)
+ are also good in-depth looks at how to use
+computers to solve sudoku puzzles.
